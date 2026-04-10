@@ -13,6 +13,10 @@ const usuariosService = {
     return api.patch(`/auth/usuarios/${id}/estado/`, { activo });
   },
 
+  update(id, data) {
+    return api.patch(`/auth/usuarios/${id}/editar/`, data);
+  },
+
   getRoles() {
     return api.get("/auth/roles/");
   },

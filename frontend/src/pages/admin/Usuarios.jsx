@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil } from 'lucide-react'
 import usuariosService from '../../services/usuariosService'
 import toast, { Toaster } from 'react-hot-toast'
 import styles from './Usuarios.module.css'
@@ -9,7 +9,7 @@ function Usuarios() {
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Modal
+  // Modal crear
   const [modalOpen, setModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     nombre: '',
@@ -20,6 +20,17 @@ function Usuarios() {
   })
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
+
+  // Modal editar
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [editData, setEditData] = useState({
+    nombre: '',
+    apellido: '',
+    password: '',
+  })
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState('')
 
   useEffect(() => {
     loadData()
@@ -68,6 +79,43 @@ function Usuarios() {
       setFormError(msg)
     } finally {
       setSaving(false)
+    }
+  }
+
+  function handleEdit(usuario) {
+    setEditingUser(usuario)
+    setEditData({
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      password: '',
+    })
+    setEditError('')
+    setEditModalOpen(true)
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault()
+    setEditError('')
+    setEditSaving(true)
+
+    try {
+      const dataToSend = {
+        nombre: editData.nombre,
+        apellido: editData.apellido,
+      }
+      if (editData.password) {
+        dataToSend.password = editData.password
+      }
+
+      await usuariosService.update(editingUser.id, dataToSend)
+      toast.success('Usuario actualizado')
+      setEditModalOpen(false)
+      loadData()
+    } catch (error) {
+      const msg = error.response?.data?.detail || 'Error al actualizar'
+      setEditError(msg)
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -136,12 +184,17 @@ function Usuarios() {
                   </span>
                 </td>
                 <td>
-                  <button
-                    className={user.activo ? styles.deleteButton : styles.activateButton}
-                    onClick={() => handleToggleEstado(user)}
-                  >
-                    {user.activo ? 'Desactivar' : 'Activar'}
-                  </button>
+                  <div className={styles.actions}>
+                    <button className={styles.editButton} onClick={() => handleEdit(user)}>
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className={user.activo ? styles.deleteButton : styles.activateButton}
+                      onClick={() => handleToggleEstado(user)}
+                    >
+                      {user.activo ? 'Desactivar' : 'Activar'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -188,7 +241,7 @@ function Usuarios() {
                 <input
                   type="email"
                   className={styles.input}
-                  placeholder="correo@400pizzeria.com"
+                  placeholder="garzon_1@400pizzeria.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -228,6 +281,64 @@ function Usuarios() {
                 </button>
                 <button type="submit" className={styles.saveButton} disabled={saving}>
                   {saving ? 'Creando...' : 'Crear usuario'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal editar usuario */}
+      {editModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setEditModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 className={styles.modalTitle}>Editar usuario</h2>
+            <p className={styles.editEmail}>{editingUser?.email}</p>
+
+            <form className={styles.form} onSubmit={handleEditSave}>
+              {editError && <div className={styles.error}>{editError}</div>}
+
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Nombre</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    value={editData.nombre}
+                    onChange={(e) => setEditData({ ...editData, nombre: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Apellido</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    value={editData.apellido}
+                    onChange={(e) => setEditData({ ...editData, apellido: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Nueva contraseña</label>
+                <input
+                  type="password"
+                  className={styles.input}
+                  placeholder="Dejar vacío para no cambiar"
+                  value={editData.password}
+                  onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                  minLength={8}
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.cancelButton} onClick={() => setEditModalOpen(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className={styles.saveButton} disabled={editSaving}>
+                  {editSaving ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
             </form>

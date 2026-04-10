@@ -260,3 +260,27 @@
 .activateButton:hover {
   background-color: rgba(76, 175, 80, 0.1);
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.editButton {
+  color: var(--color-info);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.editButton:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.editEmail {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: calc(-1 * var(--space-sm));
+  margin-bottom: var(--space-lg);
+}

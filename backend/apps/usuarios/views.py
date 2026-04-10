@@ -130,3 +130,33 @@ class UsuarioEstadoView(APIView):
             {'mensaje': f'Usuario {"activado" if activo else "desactivado"} correctamente'},
             status=status.HTTP_200_OK
         )
+
+class UsuarioEditarView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            usuario = Usuario.objects.get(pk=pk)
+        except Usuario.DoesNotExist:
+            return Response(
+                {'error': 'Usuario no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        nombre = request.data.get('nombre')
+        apellido = request.data.get('apellido')
+        password = request.data.get('password')
+
+        if nombre:
+            usuario.nombre = nombre
+        if apellido:
+            usuario.apellido = apellido
+        if password:
+            usuario.set_password(password)
+
+        usuario.save()
+
+        return Response(
+            {'mensaje': 'Usuario actualizado correctamente'},
+            status=status.HTTP_200_OK
+        )
