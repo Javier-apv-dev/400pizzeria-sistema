@@ -1,0 +1,162 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 260px;
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-bg-hover);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+  transition: transform var(--transition-normal);
+}
+
+.sidebarHeader {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-bg-hover);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.logo {
+  width: 50px;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  color: var(--color-accent);
+}
+
+.nav {
+  flex: 1;
+  padding: var(--space-md) 0;
+  overflow-y: auto;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0.75rem var(--space-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.navLink:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.navLinkActive {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+  border-right: 3px solid var(--color-accent);
+}
+
+.sidebarFooter {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-bg-hover);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.userName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.userRole {
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-sm) 0;
+  transition: color var(--transition-fast);
+  width: 100%;
+}
+
+.logoutButton:hover {
+  color: var(--color-error);
+}
+
+/* ---- Contenido principal ---- */
+.main {
+  flex: 1;
+  margin-left: 260px;
+  padding: var(--space-xl);
+}
+
+.topBar {
+  display: none;
+}
+
+/* ---- Overlay móvil ---- */
+.overlay {
+  display: none;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-bg-hover);
+    margin: calc(-1 * var(--space-xl));
+    margin-bottom: var(--space-xl);
+  }
+
+  .menuButton {
+    color: var(--color-text-primary);
+    padding: var(--space-sm);
+  }
+
+  .topBarLogo {
+    width: 40px;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+  }
+}

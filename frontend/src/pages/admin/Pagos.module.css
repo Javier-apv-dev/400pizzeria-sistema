@@ -1,0 +1,300 @@
+/* ---- Encabezado ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  color: var(--color-accent);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-bg-hover);
+  transition: all var(--transition-fast);
+}
+
+.filterButton:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.filterButtonActive {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent);
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: background-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background-color: var(--color-accent-hover);
+}
+
+/* ---- Tabla ---- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-bg-hover);
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-bg-hover);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background-color: var(--color-bg-hover);
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.badgePendiente {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.badgeCompletado {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: var(--color-success);
+}
+
+.badgeAnulado {
+  background-color: rgba(244, 67, 54, 0.15);
+  color: var(--color-error);
+}
+
+.metodoBadge {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+/* ---- Monto ---- */
+.monto {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* ---- Acciones ---- */
+.anularButton {
+  color: var(--color-error);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  transition: background-color var(--transition-fast);
+}
+
+.anularButton:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* ---- Estados ---- */
+.loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-secondary);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+/* ---- Modal ---- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  padding: var(--space-md);
+}
+
+.modal {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  width: 100%;
+  max-width: 450px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modalTitle {
+  font-size: var(--text-xl);
+  color: var(--color-accent);
+  margin-bottom: var(--space-lg);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.select {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-bg-hover);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  outline: none;
+  width: 100%;
+}
+
+.select:focus {
+  border-color: var(--color-accent);
+}
+
+/* ---- Info del pedido en modal ---- */
+.pedidoInfo {
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.pedidoInfoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  font-size: var(--text-sm);
+}
+
+.pedidoInfoLabel {
+  color: var(--color-text-secondary);
+}
+
+.pedidoInfoValue {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.pedidoInfoTotal {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: var(--text-lg);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.cancelButton {
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.cancelButton:hover {
+  color: var(--color-text-primary);
+}
+
+.saveButton {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: background-color var(--transition-fast);
+}
+
+.saveButton:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}

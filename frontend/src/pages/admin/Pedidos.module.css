@@ -1,0 +1,240 @@
+/* ---- Encabezado ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  color: var(--color-accent);
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-bg-hover);
+  transition: all var(--transition-fast);
+}
+
+.filterButton:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.filterButtonActive {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent);
+}
+
+/* ---- Grid de pedidos ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* ---- Card de pedido ---- */
+.card {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-bg-hover);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-bg-hover);
+}
+
+.pedidoId {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  color: var(--color-text-primary);
+}
+
+.cardBody {
+  padding: var(--space-lg);
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+  font-size: var(--text-sm);
+}
+
+.infoLabel {
+  color: var(--color-text-secondary);
+}
+
+.infoValue {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* ---- Detalle de productos ---- */
+.detailSection {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-bg-hover);
+}
+
+.detailTitle {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+  font-size: var(--text-sm);
+}
+
+.detailProduct {
+  color: var(--color-text-primary);
+}
+
+.detailQuantity {
+  color: var(--color-text-muted);
+  margin-left: var(--space-xs);
+}
+
+.detailSubtotal {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-bg-hover);
+}
+
+.totalLabel {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.totalValue {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* ---- Badges de estado ---- */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.badgePendiente {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.badgeEnPreparacion {
+  background-color: rgba(33, 150, 243, 0.15);
+  color: var(--color-info);
+}
+
+.badgeListo {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: var(--color-success);
+}
+
+.badgeEntregado {
+  background-color: rgba(128, 128, 128, 0.15);
+  color: var(--color-text-muted);
+}
+
+/* ---- Acciones del pedido ---- */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-bg-hover);
+  gap: var(--space-sm);
+}
+
+.estadoButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.nextButton {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+}
+
+.nextButton:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.deleteButton {
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  transition: background-color var(--transition-fast);
+}
+
+.deleteButton:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* ---- Estados ---- */
+.loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-secondary);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+/* ---- Fecha ---- */
+.fecha {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
