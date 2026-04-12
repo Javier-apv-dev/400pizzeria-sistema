@@ -22,7 +22,7 @@ const navItems = [
   { to: '/admin/productos', icon: Pizza, label: 'Productos', roles: ['Administrador'] },
   { to: '/admin/mesas', icon: Armchair, label: 'Mesas', roles: ['Administrador', 'Garzon'] },
   { to: '/admin/pedidos', icon: ClipboardList, label: 'Pedidos' },
-  { to: '/admin/pagos', icon: CreditCard, label: 'Pagos', roles: ['Administrador', 'Cajero'] },
+  { to: '/admin/pagos', icon: CreditCard, label: 'Pagos', roles: ['Administrador', 'Cajero', 'Garzon'] },
 ]
 
 function AdminLayout() {

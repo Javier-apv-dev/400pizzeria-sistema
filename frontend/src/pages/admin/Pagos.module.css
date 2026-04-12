@@ -298,3 +298,30 @@
   color: var(--color-error);
   font-size: var(--text-sm);
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-error);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  transition: background-color var(--transition-fast);
+}
+
+.deleteBtn:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.anulado {
+  font-size: var(--text-xs);
+  color: var(--color-error);
+}

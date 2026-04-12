@@ -20,6 +20,10 @@ const pagosService = {
   anular(id) {
     return api.patch(`/pagos/${id}/anular/`);
   },
+
+  delete(id) {
+    return api.delete(`/pagos/${id}/eliminar/`);
+  },
 };
 
 export default pagosService;

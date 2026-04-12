@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Ban } from 'lucide-react'
+import { Plus, Ban, Trash2 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import pagosService from '../../services/pagosService'
 import pedidosService from '../../services/pedidosService'
 import toast, { Toaster } from 'react-hot-toast'
@@ -20,6 +21,9 @@ const METODOS_PAGO = [
 ]
 
 function Pagos() {
+  const { user } = useAuth()
+  const rolUsuario = user?.rol?.nombre
+
   const [pagos, setPagos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
@@ -55,11 +59,9 @@ function Pagos() {
     setSelectedPedido(null)
 
     try {
-      // Cargar pedidos entregados que no tengan pago asociado
       const response = await pedidosService.getByEstado('entregado')
       const pedidosEntregados = response.data
 
-      // Filtrar pedidos que ya tienen pago
       const pagosResponse = await pagosService.getAll()
       const pedidosConPago = pagosResponse.data
         .filter(p => p.estado !== 'anulado')
@@ -115,6 +117,18 @@ function Pagos() {
     }
   }
 
+  async function handleDelete(pago) {
+    if (!window.confirm(`¿Eliminar permanentemente el pago #${pago.id}?`)) return
+
+    try {
+      await pagosService.delete(pago.id)
+      toast.success('Pago eliminado')
+      loadPagos()
+    } catch (error) {
+      toast.error('Error al eliminar el pago')
+    }
+  }
+
   function formatPrice(price) {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -156,6 +170,11 @@ function Pagos() {
     return found ? found.label : metodo
   }
 
+  function getUsuarioName(usuario) {
+    if (!usuario) return '—'
+    return `${usuario.nombre} ${usuario.apellido}`
+  }
+
   return (
     <div>
       <Toaster position="top-right" />
@@ -195,6 +214,7 @@ function Pagos() {
               <th>Método</th>
               <th>Monto</th>
               <th>Estado</th>
+              <th>Registrado por</th>
               <th>Fecha</th>
               <th>Acciones</th>
             </tr>
@@ -214,13 +234,26 @@ function Pagos() {
                   <span className={styles.monto}>{formatPrice(pago.monto)}</span>
                 </td>
                 <td>{getEstadoBadge(pago.estado)}</td>
+                <td>
+                  {pago.estado === 'anulado'
+                    ? <span className={styles.anulado}>Anulado por {getUsuarioName(pago.anulado_por)}</span>
+                    : getUsuarioName(pago.registrado_por)
+                  }
+                </td>
                 <td>{formatDate(pago.fecha)}</td>
                 <td>
-                  {pago.estado === 'completado' && (
-                    <button className={styles.anularButton} onClick={() => handleAnular(pago)}>
-                      <Ban size={14} /> Anular
-                    </button>
-                  )}
+                  <div className={styles.actions}>
+                    {pago.estado === 'completado' && (
+                      <button className={styles.anularButton} onClick={() => handleAnular(pago)}>
+                        <Ban size={14} /> Anular
+                      </button>
+                    )}
+                    {pago.estado === 'anulado' && rolUsuario === 'Administrador' && (
+                      <button className={styles.deleteBtn} onClick={() => handleDelete(pago)}>
+                        <Trash2 size={14} /> Eliminar
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

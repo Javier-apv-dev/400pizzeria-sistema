@@ -1,3 +1,4 @@
+import { useAuth } from '../../context/AuthContext'
 import { useState, useEffect } from 'react'
 import { Trash2, ChefHat, UtensilsCrossed, CheckCircle, ArrowRight } from 'lucide-react'
 import pedidosService from '../../services/pedidosService'
@@ -19,12 +20,22 @@ const NEXT_ESTADO = {
 }
 
 function Pedidos() {
+  const { user } = useAuth()
+  const rolUsuario = user?.rol?.nombre
+
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
 
   useEffect(() => {
     loadPedidos()
+
+    // Auto-refrescar cada 10 segundos
+    const interval = setInterval(() => {
+      loadPedidos()
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [filtro])
 
   async function loadPedidos() {
@@ -185,16 +196,41 @@ function Pedidos() {
 
               {/* Footer con acciones */}
               <div className={styles.cardFooter}>
-                {NEXT_ESTADO[pedido.estado] && (
+                {/* Garzón: puede enviar a cocina (pendiente → en_preparacion) */}
+                {pedido.estado === 'pendiente' && (rolUsuario === 'Garzon' || rolUsuario === 'Administrador') && (
                   <button
                     className={`${styles.estadoButton} ${styles.nextButton}`}
                     onClick={() => handleNextEstado(pedido)}
                   >
                     <ArrowRight size={16} />
-                    {NEXT_ESTADO[pedido.estado].label}
+                    Preparar
                   </button>
                 )}
-                {pedido.estado === 'pendiente' && (
+
+                {/* Cocina: puede marcar como listo (en_preparacion → listo) */}
+                {pedido.estado === 'en_preparacion' && (rolUsuario === 'Cocina' || rolUsuario === 'Administrador') && (
+                  <button
+                    className={`${styles.estadoButton} ${styles.nextButton}`}
+                    onClick={() => handleNextEstado(pedido)}
+                  >
+                    <ArrowRight size={16} />
+                    Marcar listo
+                  </button>
+                )}
+
+                {/* Garzón: puede marcar como entregado (listo → entregado) */}
+                {pedido.estado === 'listo' && (rolUsuario === 'Garzon' || rolUsuario === 'Administrador') && (
+                  <button
+                    className={`${styles.estadoButton} ${styles.nextButton}`}
+                    onClick={() => handleNextEstado(pedido)}
+                  >
+                    <ArrowRight size={16} />
+                    Entregar
+                  </button>
+                )}
+
+                {/* Solo admin puede eliminar pedidos pendientes */}
+                {pedido.estado === 'pendiente' && rolUsuario === 'Administrador' && (
                   <button
                     className={styles.deleteButton}
                     onClick={() => handleDelete(pedido)}
@@ -202,6 +238,7 @@ function Pedidos() {
                     <Trash2 size={18} />
                   </button>
                 )}
+
                 {pedido.estado === 'entregado' && (
                   <span className={styles.fecha}>Pedido completado</span>
                 )}

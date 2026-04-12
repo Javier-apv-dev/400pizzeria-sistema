@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from apps.pedidos.models import Pedido
 
 
@@ -30,6 +31,20 @@ class Pago(models.Model):
         Pedido,
         on_delete=models.PROTECT,
         related_name='pago'
+    )
+    registrado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='pagos_registrados'
+    )
+    anulado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='pagos_anulados'
     )
 
     class Meta:

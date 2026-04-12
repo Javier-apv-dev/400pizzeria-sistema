@@ -15,7 +15,9 @@ class PagoListView(APIView):
         estado = request.query_params.get('estado')
         pagos = Pago.objects.select_related(
             'pedido__mesa',
-            'pedido__usuario'
+            'pedido__usuario',
+            'registrado_por',
+            'anulado_por'
         ).prefetch_related(
             'pedido__detalles__producto'
         ).all().order_by('-fecha')
@@ -38,7 +40,6 @@ class PagoListView(APIView):
             pk=serializer.validated_data['pedido_id']
         )
 
-        # Verificar que el monto coincide con el total del pedido
         if serializer.validated_data['monto'] != pedido.total:
             return Response(
                 {
@@ -48,9 +49,11 @@ class PagoListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        pago = serializer.save(estado=Pago.Estado.COMPLETADO)
+        pago = serializer.save(
+            estado=Pago.Estado.COMPLETADO,
+            registrado_por=request.user
+        )
 
-        # Marcar el pedido como entregado al completar el pago
         pedido.estado = Pedido.Estado.ENTREGADO
         pedido.save()
 
@@ -67,7 +70,9 @@ class PagoDetailView(APIView):
         try:
             return Pago.objects.select_related(
                 'pedido__mesa',
-                'pedido__usuario'
+                'pedido__usuario',
+                'registrado_por',
+                'anulado_por'
             ).prefetch_related(
                 'pedido__detalles__producto'
             ).get(pk=pk)
@@ -109,9 +114,36 @@ class PagoAnularView(APIView):
             )
 
         pago.estado = Pago.Estado.ANULADO
+        pago.anulado_por = request.user
         pago.save()
 
         return Response(
             PagoSerializer(pago).data,
+            status=status.HTTP_200_OK
+        )
+
+
+class PagoDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            pago = Pago.objects.get(pk=pk)
+        except Pago.DoesNotExist:
+            return Response(
+                {'error': 'Pago no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if pago.estado != Pago.Estado.ANULADO:
+            return Response(
+                {'error': 'Solo se pueden eliminar pagos anulados'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pago.delete()
+
+        return Response(
+            {'mensaje': 'Pago eliminado correctamente'},
             status=status.HTTP_200_OK
         )
