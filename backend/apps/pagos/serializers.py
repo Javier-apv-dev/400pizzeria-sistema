@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from apps.pagos.models import Pago
 from apps.pedidos.serializers import PedidoSerializer
-
+from apps.usuarios.serializers import UsuarioSerializer
 
 class PagoSerializer(serializers.ModelSerializer):
     pedido = PedidoSerializer(read_only=True)
     pedido_id = serializers.IntegerField(write_only=True)
+    registrado_por = UsuarioSerializer(read_only=True)
+    anulado_por = UsuarioSerializer(read_only=True)
 
     class Meta:
         model = Pago
@@ -16,7 +18,9 @@ class PagoSerializer(serializers.ModelSerializer):
             'fecha',
             'estado',
             'pedido',
-            'pedido_id'
+            'pedido_id',
+            'registrado_por',
+            'anulado_por'
         ]
         read_only_fields = ['fecha']
 

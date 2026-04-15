@@ -1,0 +1,20 @@
+[33mcommit b902e9de9d9617bc53dcec615fd2e4e8e4ebdeb3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Pechanix1 <49909834+Pechanix1@users.noreply.github.com>
+Date:   Tue Apr 14 23:16:28 2026 -0400
+
+    fix: implementar control de acceso por rol en todos los endpoints protegidos
+    
+    - Agrega config/permissions.py con clases EsAdministrador, EsGarzon, EsCocina, EsPersonal, EsAdminOGarzon, EsAdminOCocina
+    - Aplica permissions en vistas de mesas, pedidos, pagos, productos y usuarios
+    - Elimina rol Cajero, responsabilidades asignadas al Garzón
+    - Corrige BLACKLIST_AFTER_ROTATION a True en JWT
+    - Extrae URL del frontend QR a variable de entorno FRONTEND_URL
+
+ backend/apps/mesas/views.py     | 12 [32m++++++[m[31m----[m
+ backend/apps/pagos/views.py     | 10 [32m++++[m[31m----[m
+ backend/apps/pedidos/views.py   | 13 [32m+++++++[m[31m----[m
+ backend/apps/productos/views.py | 13 [32m++++[m[31m-------[m
+ backend/apps/usuarios/views.py  |  9 [32m+++[m[31m----[m
+ backend/config/permissions.py   | 52 [32m+++++++++++++++++++++++++++++++++++++++++[m
+ backend/config/settings.py      |  7 [32m++++[m[31m--[m
+ 7 files changed, 89 insertions(+), 27 deletions(-)
