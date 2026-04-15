@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from config.permissions import EsAdministrador, EsAdminOGarzon, EsPersonal
+
 
 from apps.pagos.models import Pago
 from apps.pagos.serializers import PagoSerializer
@@ -9,7 +11,7 @@ from apps.pedidos.models import Pedido
 
 
 class PagoListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdminOGarzon]  # GET y POST
 
     def get(self, request):
         estado = request.query_params.get('estado')
@@ -64,7 +66,7 @@ class PagoListView(APIView):
 
 
 class PagoDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsPersonal]  # GET
 
     def get_object(self, pk):
         try:
@@ -91,7 +93,7 @@ class PagoDetailView(APIView):
 
 
 class PagoAnularView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdminOGarzon]  # PATCH
 
     def get_object(self, pk):
         try:
@@ -124,7 +126,7 @@ class PagoAnularView(APIView):
 
 
 class PagoDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]  # DELETE
 
     def delete(self, request, pk):
         try:

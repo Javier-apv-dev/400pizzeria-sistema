@@ -114,7 +114,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
@@ -137,6 +137,9 @@ USE_TZ = True
 # ─────────────────────────────────────────────
 # Archivos estáticos y media (imágenes productos)
 # ─────────────────────────────────────────────
+# URL base del frontend (usada para generar QR)
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

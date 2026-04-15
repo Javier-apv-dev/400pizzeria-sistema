@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from config.permissions import EsAdministrador
 
 from apps.usuarios.models import Usuario, Rol
 from apps.usuarios.serializers import (
@@ -77,7 +78,7 @@ class PerfilView(APIView):
 
 
 class UsuarioListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador] 
 
     def get(self, request):
         usuarios = Usuario.objects.select_related('rol').all()
@@ -96,7 +97,7 @@ class UsuarioListView(APIView):
 
 
 class RolListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def get(self, request):
         roles = Rol.objects.all()
@@ -104,7 +105,7 @@ class RolListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class UsuarioEstadoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def patch(self, request, pk):
         try:
@@ -132,7 +133,7 @@ class UsuarioEstadoView(APIView):
         )
 
 class UsuarioEditarView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def patch(self, request, pk):
         try:

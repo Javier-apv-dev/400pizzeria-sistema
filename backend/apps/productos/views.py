@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from config.permissions import EsAdministrador
 
 from apps.productos.models import Categoria, Producto
 from apps.productos.serializers import CategoriaSerializer, ProductoSerializer
@@ -19,7 +20,7 @@ class CategoriaListView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [EsAdministrador()]
 
     def get(self, request):
         categorias = Categoria.objects.filter(activo=True)
@@ -35,7 +36,7 @@ class CategoriaListView(APIView):
 
 
 class CategoriaDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def get_object(self, pk):
         try:
@@ -86,12 +87,10 @@ class CategoriaDetailView(APIView):
 # ─────────────────────────────────────────────
 
 class ProductoListView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
-
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [EsAdministrador()]
 
     def get(self, request):
         categoria_id = request.query_params.get('categoria')
@@ -120,12 +119,10 @@ class ProductoListView(APIView):
 
 
 class ProductoDetailView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
-
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [EsAdministrador()]
 
     def get_object(self, pk):
         try:

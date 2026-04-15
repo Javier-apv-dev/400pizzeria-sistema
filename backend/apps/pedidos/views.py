@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from config.permissions import EsPersonal, EsAdminOGarzon, EsAdminOCocina
+from config.permissions import EsAdministrador  # para el DELETE
 
 from apps.pedidos.models import Pedido, DetallePedido
 from apps.pedidos.serializers import (
@@ -17,8 +19,8 @@ class PedidoListView(APIView):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [AllowAny()]
-        return [IsAuthenticated()]
+            return [AllowAny()]  # público para carta QR
+        return [EsPersonal()]   # GET → los 3 roles
 
     def get(self, request):
         estado = request.query_params.get('estado')
@@ -90,7 +92,10 @@ class PedidoListView(APIView):
 
 
 class PedidoDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [EsAdminOCocina()]
+        return [EsAdministrador()]  # DELETE → solo admin
 
     def get_object(self, pk):
         try:
@@ -132,7 +137,7 @@ class PedidoDetailView(APIView):
 
 
 class PedidoEstadoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsPersonal]  # los 3 roles
 
     def get_object(self, pk):
         try:

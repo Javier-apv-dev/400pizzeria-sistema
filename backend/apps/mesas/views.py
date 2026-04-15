@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.conf import settings 
+from config.permissions import EsAdministrador
 
 from apps.mesas.models import Mesa
 from apps.mesas.serializers import MesaSerializer
@@ -11,7 +13,7 @@ from io import BytesIO
 
 
 def generar_qr(mesa_id):
-    url = f'http://localhost:5173/carta?mesa={mesa_id}'
+    url = f'{settings.FRONTEND_URL}/carta?mesa={mesa_id}'
 
     qr = qrcode.QRCode(
         version=1,
@@ -36,7 +38,7 @@ class MesaListView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [EsAdministrador()]
 
     def get(self, request):
         mesas = Mesa.objects.all().order_by('numero')
@@ -61,7 +63,7 @@ class MesaDetailView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [EsAdministrador()]
 
     def get_object(self, pk):
         try:
@@ -107,7 +109,7 @@ class MesaDetailView(APIView):
 
 
 class MesaEstadoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def get_object(self, pk):
         try:
@@ -147,7 +149,7 @@ class MesaEstadoView(APIView):
 
 
 class MesaQRView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def get_object(self, pk):
         try:
