@@ -21,7 +21,12 @@ class CategoriaListView(APIView):
         return [EsAdministrador()]
 
     def get(self, request):
-        categorias = Categoria.objects.filter(activo=True)
+    # Admin ve todas, cliente solo las activas
+        if request.user.is_authenticated:
+            categorias = Categoria.objects.all()
+        else:
+            categorias = Categoria.objects.filter(activo=True)
+        
         serializer = CategoriaSerializer(categorias, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -92,10 +97,17 @@ class ProductoListView(APIView):
 
     def get(self, request):
         categoria_id = request.query_params.get('categoria')
-        productos = Producto.objects.select_related('categoria').filter(
-            disponible=True,
-            categoria__activo=True
-        )
+
+        if request.user.is_authenticated:
+            productos = Producto.objects.select_related('categoria').filter(
+                categoria__activo=True
+            )
+        else:
+            productos = Producto.objects.select_related('categoria').filter(
+                disponible=True,
+                categoria__activo=True
+            )
+
         if categoria_id:
             productos = productos.filter(categoria_id=categoria_id)
         serializer = ProductoSerializer(

@@ -117,7 +117,7 @@ function Productos() {
       data.append('descripcion', formData.descripcion)
       data.append('precio', formData.precio)
       data.append('categoria_id', formData.categoria_id)
-      data.append('disponible', formData.disponible)
+      data.append('disponible', formData.disponible ? 'true' : 'false')
       if (imageFile) {
         data.append('imagen', imageFile)
       }
