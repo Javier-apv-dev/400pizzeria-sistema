@@ -27,6 +27,15 @@ function Productos() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // Estado del filtro
+  const FILTROS_DISPONIBLE = [
+    { value: '', label: 'Todos' },
+    { value: 'true', label: 'Disponibles' },
+    { value: 'false', label: 'No disponibles' },
+  ]
+
+  const [filtroDisponible, setFiltroDisponible] = useState('')
+
   // Cargar datos al montar
   useEffect(() => {
     loadData()
@@ -35,7 +44,7 @@ function Productos() {
   // Recargar productos cuando cambia el filtro
   useEffect(() => {
     loadProductos()
-  }, [filtroCategoria])
+  }, [filtroCategoria, filtroDisponible])
 
   async function loadData() {
     try {
@@ -53,15 +62,16 @@ function Productos() {
   }
 
   async function loadProductos() {
-    try {
-      const response = filtroCategoria
-        ? await productosService.getByCategoria(filtroCategoria)
-        : await productosService.getAll()
-      setProductos(response.data)
-    } catch (error) {
-      toast.error('Error al cargar los productos')
-    }
+  try {
+    const response = await productosService.getFiltered({
+      categoria: filtroCategoria || undefined,
+      disponible: filtroDisponible || undefined,
+    })
+    setProductos(response.data)
+  } catch (error) {
+    toast.error('Error al cargar los productos')
   }
+}
 
   // Abrir modal para crear
   function handleCreate() {
@@ -186,8 +196,19 @@ function Productos() {
             <option value="">Todas las categorías</option>
             {categorias.map((cat) => (
               <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-            ))}
+            ))}         
           </select>
+          <div className={styles.filters}>
+            {FILTROS_DISPONIBLE.map((item) => (
+                <button
+                  key={item.value}
+                  className={`${styles.filterButton} ${filtroDisponible === item.value ? styles.filterButtonActive : ''}`}
+                  onClick={() => setFiltroDisponible(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+          </div>
           <button className={styles.addButton} onClick={handleCreate}>
             <Plus size={18} />
             Nuevo producto

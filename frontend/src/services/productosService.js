@@ -5,8 +5,10 @@ const productosService = {
     return api.get("/productos/");
   },
 
-  getByCategoria(categoriaId) {
-    return api.get(`/productos/?categoria=${categoriaId}`);
+  getFiltered({ categoria, disponible } = {}) {
+    return api.get("/productos/", {
+      params: { categoria, disponible },
+    });
   },
 
   getById(id) {

@@ -110,12 +110,18 @@ class ProductoListView(APIView):
 
         if categoria_id:
             productos = productos.filter(categoria_id=categoria_id)
+        disponible = request.query_params.get('disponible')
+        if disponible is not None and request.user.is_authenticated:
+            disponible_bool = disponible.lower() == 'true'
+            productos = productos.filter(disponible=disponible_bool)
+
         serializer = ProductoSerializer(
             productos,
             many=True,
             context={'request': request}
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        ) 
+        
+        Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ProductoSerializer(
