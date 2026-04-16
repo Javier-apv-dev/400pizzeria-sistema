@@ -98,6 +98,17 @@
   background-color: rgba(33, 150, 243, 0.1);
 }
 
+.activateButton {
+  color: var(--color-success);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.activateButton:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
 .deleteButton {
   color: var(--color-error);
   padding: var(--space-xs);

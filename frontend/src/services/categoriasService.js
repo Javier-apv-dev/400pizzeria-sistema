@@ -21,9 +21,12 @@ const categoriasService = {
     return api.put(`/categorias/${id}/`, data);
   },
 
-  // Eliminar (desactivar) una categoría
   delete(id) {
     return api.delete(`/categorias/${id}/`);
+  },
+
+  updateEstado(id, activo) {
+    return api.patch(`/categorias/${id}/estado/`, { activo });
   },
 };
 

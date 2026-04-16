@@ -19,6 +19,33 @@
   gap: var(--space-md);
 }
 
+.filters {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-bg-hover);
+  transition: all var(--transition-fast);
+}
+
+.filterButton:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.filterButtonActive {
+  background-color: var(--color-accent);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent);
+}
+
 .filterSelect {
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-bg-hover);

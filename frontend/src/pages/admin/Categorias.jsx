@@ -76,18 +76,22 @@ function Categorias() {
     }
   }
 
-  // Eliminar (desactivar)
-  async function handleDelete(categoria) {
-    if (!window.confirm(`¿Eliminar la categoría "${categoria.nombre}"?`)) return
+  // Desactivar (desactivar)
+  async function handleToggleEstado(categoria) {
+  const nuevoEstado = !categoria.activo
+  const accion = nuevoEstado ? 'activar' : 'desactivar'
+  if (!window.confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} la categoría "${categoria.nombre}"?`)) return
 
-    try {
-      await categoriasService.delete(categoria.id)
-      toast.success('Categoría eliminada')
-      loadCategorias()
-    } catch (error) {
-      toast.error('Error al eliminar la categoría')
-    }
-  }
+  try {
+    await categoriasService.updateEstado(categoria.id, nuevoEstado)
+    toast.success(`Categoría ${nuevoEstado ? 'activada' : 'desactivada'}`)
+    loadCategorias()
+  } catch (error) {
+  console.error('Error completo:', error)
+  console.error('Respuesta del backend:', error.response?.data)
+  toast.error('Error al actualizar el estado')
+}
+}
 
   return (
     <div>
@@ -134,8 +138,11 @@ function Categorias() {
                     <button className={styles.editButton} onClick={() => handleEdit(cat)}>
                       <Pencil size={16} />
                     </button>
-                    <button className={styles.deleteButton} onClick={() => handleDelete(cat)}>
-                      <Trash2 size={16} />
+                    <button
+                      className={cat.activo ? styles.deleteButton : styles.activateButton}
+                      onClick={() => handleToggleEstado(cat)}
+                    >
+                      {cat.activo ? 'Desactivar' : 'Activar'}
                     </button>
                   </div>
                 </td>
