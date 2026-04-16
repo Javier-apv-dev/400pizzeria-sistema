@@ -5,8 +5,6 @@ import categoriasService from '../../services/categoriasService'
 import toast, { Toaster } from 'react-hot-toast'
 import styles from './Productos.module.css'
 
-const BACKEND_URL = 'http://localhost:8000'
-
 function Productos() {
   // Estado del listado
   const [productos, setProductos] = useState([])

@@ -33,7 +33,7 @@ function AppRouter() {
         >
           <Route index element={<Dashboard />} />
           <Route path="categorias" element={<Categorias />} />
-          <Route path="Productos" element={<Productos />} />
+          <Route path="productos" element={<Productos />} />
           <Route path="mesas" element={<Mesas />} />
           <Route path="pedidos" element={<Pedidos />} />
           <Route path="pagos" element={<Pagos />} />
