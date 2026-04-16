@@ -46,7 +46,7 @@ class CategoriaDetailView(APIView):
             return Categoria.objects.get(pk=pk)
         except Categoria.DoesNotExist:
             return None
-
+       
     def get(self, request, pk):
         categoria = self.get_object(pk)
         if not categoria:
@@ -83,7 +83,37 @@ class CategoriaDetailView(APIView):
             {'mensaje': 'Categoría desactivada correctamente'},
             status=status.HTTP_200_OK
         )
+        
+class CategoriaEstadoView(APIView):
+    permission_classes = [EsAdministrador]
 
+    def get_object(self, pk):
+        try:
+            return Categoria.objects.get(pk=pk)
+        except Categoria.DoesNotExist:
+            return None
+
+    def patch(self, request, pk):
+        categoria = self.get_object(pk)
+        if not categoria:
+            return Response(
+                {'error': 'Categoría no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        nuevo_activo = request.data.get('activo')
+        if nuevo_activo is None:
+            return Response(
+                {'error': 'El campo activo es obligatorio'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        categoria.activo = nuevo_activo
+        categoria.save()
+        return Response(
+            CategoriaSerializer(categoria).data,
+            status=status.HTTP_200_OK
+        )
 
 # ─────────────────────────────────────────────
 # Vistas de Productos
@@ -121,7 +151,7 @@ class ProductoListView(APIView):
             context={'request': request}
         ) 
         
-        Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ProductoSerializer(
