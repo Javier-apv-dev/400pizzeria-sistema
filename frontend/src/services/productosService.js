@@ -30,6 +30,10 @@ const productosService = {
   delete(id) {
     return api.delete(`/productos/${id}/`);
   },
+
+  getByCategoria(catId) {
+    return api.get(`/productos/?categoria=${catId}`);
+  },
 };
 
 export default productosService;

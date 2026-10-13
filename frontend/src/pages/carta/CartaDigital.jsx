@@ -19,6 +19,7 @@ function CartaDigital() {
   const [cartOpen, setCartOpen] = useState(false)
   const [sending, setSending] = useState(false)
   const [orderSent, setOrderSent] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   const { items, addItem, updateQuantity, clearCart, getTotal, getTotalItems } = useCart()
 
@@ -138,7 +139,7 @@ function CartaDigital() {
           <div className={styles.empty}>No hay productos disponibles</div>
         ) : (
           productos.map((prod) => (
-            <div key={prod.id} className={styles.productCard}>
+            <div key={prod.id} className={styles.productCard} onClick={() => setSelectedProduct(prod)} style={{ cursor: 'pointer' }}>
               {prod.imagen ? (
                 <img src={prod.imagen} alt={prod.nombre} className={styles.productImage} />
               ) : (
@@ -155,7 +156,7 @@ function CartaDigital() {
                 </div>
                 <div className={styles.productFooter}>
                   <span className={styles.productPrice}>{formatPrice(prod.precio)}</span>
-                  <button className={styles.addToCartButton} onClick={() => addItem(prod)}>
+                  <button className={styles.addToCartButton} onClick={(e) => { e.stopPropagation(); addItem(prod); }}>
                     <Plus size={18} />
                   </button>
                 </div>
@@ -164,6 +165,47 @@ function CartaDigital() {
           ))
         )}
       </div>
+        {/* Modal detalle de producto */}
+      {selectedProduct && (
+        <div className={styles.cartOverlay} onClick={() => setSelectedProduct(null)}>
+          <div className={styles.cartModal} onClick={(e) => e.stopPropagation()}>
+            {selectedProduct.imagen ? (
+              <img
+                src={selectedProduct.imagen}
+                alt={selectedProduct.nombre}
+                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)' }}
+              />
+            ) : (
+              <div className={styles.noImage} style={{ width: '100%', height: '200px', marginBottom: 'var(--space-md)' }}>
+                <ImageOff size={32} />
+              </div>
+            )}
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-xl)', color: 'var(--color-accent)', marginBottom: 'var(--space-sm)' }}>
+              {selectedProduct.nombre}
+            </h2>
+            {selectedProduct.descripcion && (
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', lineHeight: '1.6', marginBottom: 'var(--space-lg)' }}>
+                {selectedProduct.descripcion}
+              </p>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
+              <span className={styles.productPrice} style={{ fontSize: 'var(--text-xl)' }}>
+                {formatPrice(selectedProduct.precio)}
+              </span>
+              <button
+                className={styles.confirmButton}
+                style={{ flex: 'unset', padding: '0.6rem 1.5rem' }}
+                onClick={() => { addItem(selectedProduct); setSelectedProduct(null); }}
+              >
+                Agregar
+              </button>
+            </div>
+            <button className={styles.closeCartButton} onClick={() => setSelectedProduct(null)}>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Botón flotante del carrito */}
       {getTotalItems() > 0 && (
