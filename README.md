@@ -65,6 +65,7 @@ Todas las rutas cuelgan de `http://localhost:8000/api/`. Las marcadas como públ
 | Recurso | Método y ruta | Permiso |
 |---------|---------------|---------|
 | Autenticación | `POST auth/login/` | Público |
+| | `POST auth/token/refresh/` | Público (entrega un access nuevo y rota el refresh) |
 | | `POST auth/logout/` | Autenticado |
 | | `GET auth/perfil/` | Autenticado |
 | Usuarios | `GET, POST auth/usuarios/` | Administrador |

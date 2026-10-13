@@ -19,31 +19,52 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Refresco en curso, compartido por todas las peticiones que reciban 401 a la vez
+// (ej. el Promise.all del Dashboard). Con ROTATE_REFRESH_TOKENS el backend invalida
+// el refresh token usado, así que solo puede enviarse una vez.
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) {
+    throw new Error("No hay refresh token");
+  }
+
+  const response = await axios.post(
+    "http://localhost:8000/api/auth/token/refresh/",
+    {
+      refresh: refreshToken,
+    },
+  );
+
+  localStorage.setItem("access_token", response.data.access);
+  // El backend rota el refresh token: hay que guardar el nuevo
+  if (response.data.refresh) {
+    localStorage.setItem("refresh_token", response.data.refresh);
+  }
+  return response.data.access;
+}
+
 // Interceptor de RESPONSE: si el token expiró (401), intenta refrescar
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    // Un 401 del login son credenciales incorrectas: se devuelve tal cual al formulario
+    const esLogin = originalRequest?.url?.includes("/auth/login/");
+
     // Si recibimos 401 y no es un reintento, intentamos refrescar el token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !esLogin) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) {
-          throw new Error("No hay refresh token");
+        if (!refreshPromise) {
+          refreshPromise = refreshAccessToken().finally(() => {
+            refreshPromise = null;
+          });
         }
-
-        const response = await axios.post(
-          "http://localhost:8000/api/auth/token/refresh/",
-          {
-            refresh: refreshToken,
-          },
-        );
-
-        const newAccessToken = response.data.access;
-        localStorage.setItem("access_token", newAccessToken);
+        const newAccessToken = await refreshPromise;
 
         // Reintenta la petición original con el nuevo token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
