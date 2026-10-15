@@ -43,10 +43,11 @@ function Dashboard() {
       // Mesas ocupadas
       const ocupadas = mesasData.filter(m => m.estado === 'ocupada')
 
-      // Ventas de hoy (pagos completados)
-      const hoy = new Date().toISOString().split('T')[0]
+      // Ventas de hoy (pagos completados). Se compara en hora local: toISOString()
+      // usa UTC y en Chile, desde las 21:00, ya devuelve la fecha del día siguiente
+      const hoy = new Date().toDateString()
       const ventasHoy = pagos
-        .filter(p => p.estado === 'completado' && p.fecha?.startsWith(hoy))
+        .filter(p => p.estado === 'completado' && p.fecha && new Date(p.fecha).toDateString() === hoy)
         .reduce((sum, p) => sum + Number(p.monto), 0)
 
       setStats({
