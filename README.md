@@ -56,7 +56,7 @@ Los permisos se implementan en `backend/config/permissions.py` comparando el nom
 2. Envía su pedido → se crea en estado `pendiente` y la mesa pasa a `ocupada`.
 3. Estados del pedido: `pendiente` → `en_preparacion` → `listo` → `entregado`. Al quedar entregado el último pedido activo de la mesa, esta vuelve a `libre`.
 4. El garzón registra el pago de un pedido entregado (efectivo, débito, crédito o transferencia). El monto debe coincidir con el total del pedido.
-5. Un pago puede anularse; solo los pagos anulados pueden eliminarse, y solo por el Administrador.
+5. Un pago puede anularse y el pedido vuelve a quedar disponible para cobrarse; el pago anulado se conserva como historial. Cada pedido tiene a lo más un pago vigente. Solo los pagos anulados pueden eliminarse, y solo por el Administrador.
 
 ## API REST
 

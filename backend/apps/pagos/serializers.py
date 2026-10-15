@@ -31,7 +31,7 @@ class PagoSerializer(serializers.ModelSerializer):
         except Pedido.DoesNotExist:
             raise serializers.ValidationError('El pedido no existe')
 
-        if hasattr(pedido, 'pago'):
+        if pedido.pagos.exclude(estado=Pago.Estado.ANULADO).exists():
             raise serializers.ValidationError(
                 'Este pedido ya tiene un pago registrado'
             )

@@ -27,10 +27,12 @@ class Pago(models.Model):
         choices=Estado.choices,
         default=Estado.PENDIENTE
     )
-    pedido = models.OneToOneField(
+    # Un pedido puede tener varios pagos (los anulados quedan como historial),
+    # pero solo uno vigente: lo valida PagoSerializer.validate_pedido_id
+    pedido = models.ForeignKey(
         Pedido,
         on_delete=models.PROTECT,
-        related_name='pago'
+        related_name='pagos'
     )
     registrado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
