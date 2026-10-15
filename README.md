@@ -53,7 +53,7 @@ Los permisos se implementan en `backend/config/permissions.py` comparando el nom
 ## Flujo operativo
 
 1. El cliente escanea el QR de la mesa → `/carta?mesa=<id>`.
-2. Envía su pedido → se crea en estado `pendiente` y la mesa pasa a `ocupada`.
+2. Envía su pedido, con indicaciones opcionales por producto para la cocina (“sin cebolla”, máximo 140 caracteres) → se crea en estado `pendiente` y la mesa pasa a `ocupada`.
 3. Estados del pedido: `pendiente` → `en_preparacion` → `listo` → `entregado`. Al quedar entregado el último pedido activo de la mesa, esta vuelve a `libre`.
 4. El garzón registra el pago de un pedido entregado (efectivo, débito, crédito o transferencia). El monto debe coincidir con el total del pedido.
 5. Un pago puede anularse y el pedido vuelve a quedar disponible para cobrarse; el pago anulado se conserva como historial. Cada pedido tiene a lo más un pago vigente. Solo los pagos anulados pueden eliminarse, y solo por el Administrador.
@@ -138,6 +138,16 @@ npm run dev
 ```
 
 El panel queda en `http://localhost:5173/login` y la carta digital en `http://localhost:5173/carta?mesa=<id>`. La URL base de la API está definida en `frontend/src/services/api.js`.
+
+## Pruebas automatizadas
+
+Desde `backend/`:
+
+```bash
+python manage.py test
+```
+
+Django crea una base de pruebas temporal (`test_<DB_NAME>`) y la borra al terminar, así que el usuario de MySQL necesita permiso para crear bases de datos.
 
 ## Variables de entorno (backend)
 

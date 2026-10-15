@@ -3,6 +3,8 @@ from apps.pedidos.models import Pedido, DetallePedido
 from apps.productos.serializers import ProductoSerializer
 from apps.mesas.serializers import MesaSerializer
 
+NOTA_MAX = DetallePedido._meta.get_field('nota').max_length
+
 
 class DetallePedidoSerializer(serializers.ModelSerializer):
     producto = ProductoSerializer(read_only=True)
@@ -16,7 +18,8 @@ class DetallePedidoSerializer(serializers.ModelSerializer):
             'producto_id',
             'cantidad',
             'precio_unitario',
-            'subtotal'
+            'subtotal',
+            'nota'
         ]
         read_only_fields = ['precio_unitario', 'subtotal']
 
@@ -73,6 +76,15 @@ class CrearPedidoSerializer(serializers.Serializer):
             if int(item['cantidad']) <= 0:
                 raise serializers.ValidationError(
                     'La cantidad debe ser mayor a 0'
+                )
+            nota = item.get('nota', '')
+            if not isinstance(nota, str):
+                raise serializers.ValidationError(
+                    'La nota debe ser texto'
+                )
+            if len(nota.strip()) > NOTA_MAX:
+                raise serializers.ValidationError(
+                    f'La nota no puede superar los {NOTA_MAX} caracteres'
                 )
             try:
                 Producto.objects.get(pk=item['producto_id'], disponible=True)

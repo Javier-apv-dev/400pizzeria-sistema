@@ -178,6 +178,9 @@ function Pedidos() {
                             {detalle.producto?.nombre || `Producto ${detalle.producto_id}`}
                           </span>
                           <span className={styles.detailQuantity}>x{detalle.cantidad}</span>
+                          {detalle.nota && (
+                            <div className={styles.detailNota}>{detalle.nota}</div>
+                          )}
                         </div>
                         <span className={styles.detailSubtotal}>
                           {formatPrice(detalle.subtotal)}

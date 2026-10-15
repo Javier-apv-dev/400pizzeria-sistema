@@ -73,7 +73,8 @@ class PedidoListView(APIView):
                 producto=producto,
                 cantidad=cantidad,
                 precio_unitario=precio_unitario,
-                subtotal=subtotal
+                subtotal=subtotal,
+                nota=item.get('nota', '').strip()
             )
             total += subtotal
 

@@ -122,6 +122,13 @@
   margin-left: var(--space-xs);
 }
 
+/* Indicación del cliente: destacada para que la cocina no la pase por alto */
+.detailNota {
+  color: var(--color-warning);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
 .detailSubtotal {
   color: var(--color-accent);
   font-weight: 500;

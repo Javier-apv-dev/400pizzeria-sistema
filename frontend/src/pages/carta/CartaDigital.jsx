@@ -20,6 +20,7 @@ function CartaDigital() {
   const [sending, setSending] = useState(false)
   const [orderSent, setOrderSent] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [nota, setNota] = useState('')
 
   const { items, addItem, updateQuantity, clearCart, getTotal, getTotalItems } = useCart()
 
@@ -72,6 +73,7 @@ function CartaDigital() {
         productos: items.map(item => ({
           producto_id: item.id,
           cantidad: item.cantidad,
+          ...(item.nota && { nota: item.nota }),
         })),
       })
       clearCart()
@@ -139,7 +141,7 @@ function CartaDigital() {
           <div className={styles.empty}>No hay productos disponibles</div>
         ) : (
           productos.map((prod) => (
-            <div key={prod.id} className={styles.productCard} onClick={() => setSelectedProduct(prod)} style={{ cursor: 'pointer' }}>
+            <div key={prod.id} className={styles.productCard} onClick={() => { setNota(''); setSelectedProduct(prod); }} style={{ cursor: 'pointer' }}>
               {prod.imagen ? (
                 <img src={prod.imagen} alt={prod.nombre} className={styles.productImage} />
               ) : (
@@ -188,6 +190,18 @@ function CartaDigital() {
                 {selectedProduct.descripcion}
               </p>
             )}
+            <label className={styles.notaLabel} htmlFor="nota-producto">
+              Indicaciones para la cocina (opcional)
+            </label>
+            <textarea
+              id="nota-producto"
+              className={styles.notaInput}
+              placeholder="Ej: sin cebolla, bien cocida"
+              maxLength={140}
+              rows={2}
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+            />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
               <span className={styles.productPrice} style={{ fontSize: 'var(--text-xl)' }}>
                 {formatPrice(selectedProduct.precio)}
@@ -195,7 +209,7 @@ function CartaDigital() {
               <button
                 className={styles.confirmButton}
                 style={{ flex: 'unset', padding: '0.6rem 1.5rem' }}
-                onClick={() => { addItem(selectedProduct); setSelectedProduct(null); }}
+                onClick={() => { addItem(selectedProduct, nota); setSelectedProduct(null); }}
               >
                 Agregar
               </button>
@@ -225,22 +239,23 @@ function CartaDigital() {
             <h2 className={styles.cartTitle}>Tu pedido</h2>
 
             {items.map((item) => (
-              <div key={item.id} className={styles.cartItem}>
+              <div key={item.lineaId} className={styles.cartItem}>
                 <div className={styles.cartItemInfo}>
                   <div className={styles.cartItemName}>{item.nombre}</div>
+                  {item.nota && <div className={styles.cartItemNota}>{item.nota}</div>}
                   <div className={styles.cartItemPrice}>{formatPrice(item.precio)} c/u</div>
                 </div>
                 <div className={styles.cartItemControls}>
                   <button
                     className={styles.qtyButton}
-                    onClick={() => updateQuantity(item.id, item.cantidad - 1)}
+                    onClick={() => updateQuantity(item.lineaId, item.cantidad - 1)}
                   >
                     <Minus size={14} />
                   </button>
                   <span className={styles.qtyValue}>{item.cantidad}</span>
                   <button
                     className={styles.qtyButton}
-                    onClick={() => updateQuantity(item.id, item.cantidad + 1)}
+                    onClick={() => updateQuantity(item.lineaId, item.cantidad + 1)}
                   >
                     <Plus size={14} />
                   </button>
