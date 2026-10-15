@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings 
-from config.permissions import EsAdministrador
+from config.permissions import EsAdministrador, EsAdminOGarzon
 
 from apps.mesas.models import Mesa
 from apps.mesas.serializers import MesaSerializer
@@ -109,7 +109,7 @@ class MesaDetailView(APIView):
 
 
 class MesaEstadoView(APIView):
-    permission_classes = [EsAdministrador]
+    permission_classes = [EsAdminOGarzon]  # el garzón libera o reserva mesas en sala
 
     def get_object(self, pk):
         try:

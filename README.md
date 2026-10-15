@@ -82,7 +82,7 @@ Todas las rutas cuelgan de `http://localhost:8000/api/`. Las marcadas como públ
 | | `PUT, DELETE productos/<id>/` | Administrador (DELETE = desactivación lógica) |
 | Mesas | `GET mesas/`, `GET mesas/<id>/` | Público |
 | | `POST mesas/`, `PUT, DELETE mesas/<id>/` | Administrador (POST genera el QR) |
-| | `PATCH mesas/<id>/estado/` | Administrador |
+| | `PATCH mesas/<id>/estado/` | Administrador o Garzon |
 | | `POST mesas/<id>/qr/` | Administrador (regenera el QR) |
 | Pedidos | `POST pedidos/` | Público (carta digital) |
 | | `GET pedidos/?estado=&mesa=` | Cualquier rol |

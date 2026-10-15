@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, RefreshCw, Download } from 'lucide-react'
 import mesasService from '../../services/mesasService'
+import { useAuth } from '../../context/AuthContext'
 import toast, { Toaster } from 'react-hot-toast'
 import styles from './Mesas.module.css'
 
 function Mesas() {
+  // El garzón solo cambia el estado; crear, editar, eliminar y regenerar QR es del admin
+  const { user } = useAuth()
+  const esAdmin = user?.rol?.nombre === 'Administrador'
+
   const [mesas, setMesas] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -132,10 +137,12 @@ function Mesas() {
 
       <div className={styles.header}>
         <h1 className={styles.title}>Mesas</h1>
-        <button className={styles.addButton} onClick={handleCreate}>
-          <Plus size={18} />
-          Nueva mesa
-        </button>
+        {esAdmin && (
+          <button className={styles.addButton} onClick={handleCreate}>
+            <Plus size={18} />
+            Nueva mesa
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -148,14 +155,16 @@ function Mesas() {
             <div key={mesa.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <span className={styles.mesaNumber}>Mesa {mesa.numero}</span>
-                <div className={styles.cardActions}>
-                  <button className={styles.editButton} onClick={() => handleEdit(mesa)}>
-                    <Pencil size={16} />
-                  </button>
-                  <button className={styles.deleteButton} onClick={() => handleDelete(mesa)}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                {esAdmin && (
+                  <div className={styles.cardActions}>
+                    <button className={styles.editButton} onClick={() => handleEdit(mesa)}>
+                      <Pencil size={16} />
+                    </button>
+                    <button className={styles.deleteButton} onClick={() => handleDelete(mesa)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className={styles.cardInfo}>
@@ -188,10 +197,12 @@ function Mesas() {
                   <div className={styles.empty}>Sin QR</div>
                 )}
                 <div className={styles.qrActions}>
-                  <button className={styles.qrButton} onClick={() => handleRegenerarQR(mesa)}>
-                    <RefreshCw size={14} />
-                    Regenerar
-                  </button>
+                  {esAdmin && (
+                    <button className={styles.qrButton} onClick={() => handleRegenerarQR(mesa)}>
+                      <RefreshCw size={14} />
+                      Regenerar
+                    </button>
+                  )}
                   <button className={styles.qrButton} onClick={() => handleDescargarQR(mesa)}>
                     <Download size={14} />
                     Descargar
