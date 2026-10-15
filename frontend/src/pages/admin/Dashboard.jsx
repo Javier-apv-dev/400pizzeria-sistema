@@ -25,10 +25,10 @@ function Dashboard() {
   const [mesas, setMesas] = useState([])
 
   useEffect(() => {
-    loadDashboard()
-  }, [])
+    loadDashboard(puedeVerPagos)
+  }, [puedeVerPagos])
 
-  async function loadDashboard() {
+  async function loadDashboard(puedeVerPagos) {
     try {
       const [pedidosRes, mesasRes, pagosRes, productosRes] = await Promise.all([
         pedidosService.getAll(),
