@@ -62,7 +62,8 @@ function Dashboard() {
         pedidosActivos: activos.length,
         mesasOcupadas: ocupadas.length,
         ventasHoy: ventasHoy,
-        totalProductos: productos.length,
+        // Solo lo que el cliente ve en la carta: disponible y de categoría activa
+        totalProductos: productos.filter(p => p.disponible && p.categoria?.activo).length,
       })
 
       // Últimos 5 pedidos activos

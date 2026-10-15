@@ -128,10 +128,10 @@ class ProductoListView(APIView):
     def get(self, request):
         categoria_id = request.query_params.get('categoria')
 
+        # El personal ve todo (también productos de categorías desactivadas,
+        # para poder editarlos); la carta pública solo lo disponible y activo
         if request.user.is_authenticated:
-            productos = Producto.objects.select_related('categoria').filter(
-                categoria__activo=True
-            )
+            productos = Producto.objects.select_related('categoria').all()
         else:
             productos = Producto.objects.select_related('categoria').filter(
                 disponible=True,
