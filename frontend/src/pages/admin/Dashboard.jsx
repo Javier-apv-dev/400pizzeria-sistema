@@ -4,9 +4,16 @@ import pedidosService from '../../services/pedidosService'
 import mesasService from '../../services/mesasService'
 import pagosService from '../../services/pagosService'
 import productosService from '../../services/productosService'
+import { useAuth } from '../../context/AuthContext'
 import styles from './Dashboard.module.css'
 
+// Roles con acceso a /pagos/ en el backend (EsAdminOGarzon)
+const ROLES_CON_PAGOS = ['Administrador', 'Garzon']
+
 function Dashboard() {
+  const { user } = useAuth()
+  const puedeVerPagos = ROLES_CON_PAGOS.includes(user?.rol?.nombre)
+
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     pedidosActivos: 0,
@@ -26,7 +33,8 @@ function Dashboard() {
       const [pedidosRes, mesasRes, pagosRes, productosRes] = await Promise.all([
         pedidosService.getAll(),
         mesasService.getAll(),
-        pagosService.getAll(),
+        // Cocina no puede ver pagos: su 403 hacía fallar todo el Promise.all
+        puedeVerPagos ? pagosService.getAll() : Promise.resolve({ data: [] }),
         productosService.getAll(),
       ])
 
@@ -146,15 +154,17 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
-            <CreditCard size={24} />
+        {puedeVerPagos && (
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+              <CreditCard size={24} />
+            </div>
+            <div className={styles.statInfo}>
+              <span className={styles.statValue}>{formatPrice(stats.ventasHoy)}</span>
+              <span className={styles.statLabel}>Ventas de hoy</span>
+            </div>
           </div>
-          <div className={styles.statInfo}>
-            <span className={styles.statValue}>{formatPrice(stats.ventasHoy)}</span>
-            <span className={styles.statLabel}>Ventas de hoy</span>
-          </div>
-        </div>
+        )}
 
         <div className={styles.statCard}>
           <div className={`${styles.statIcon} ${styles.statIconGold}`}>
