@@ -2,7 +2,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.conf import settings 
+from django.conf import settings
+from django.db.models import ProtectedError
 from config.permissions import EsAdministrador, EsAdminOGarzon
 
 from apps.mesas.models import Mesa
@@ -101,7 +102,14 @@ class MesaDetailView(APIView):
                 {'error': 'Mesa no encontrada'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        mesa.delete()
+        try:
+            mesa.delete()
+        except ProtectedError:
+            # Pedido.mesa es PROTECT: una mesa con historial de pedidos no se puede borrar
+            return Response(
+                {'error': f'La mesa {mesa.numero} tiene pedidos registrados y no se puede eliminar'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(
             {'mensaje': 'Mesa eliminada correctamente'},
             status=status.HTTP_200_OK

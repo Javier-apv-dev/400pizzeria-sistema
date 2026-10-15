@@ -80,7 +80,7 @@ function Mesas() {
       toast.success('Mesa eliminada')
       loadMesas()
     } catch (error) {
-      toast.error('Error al eliminar la mesa')
+      toast.error(error.response?.data?.error || 'Error al eliminar la mesa')
     }
   }
 
