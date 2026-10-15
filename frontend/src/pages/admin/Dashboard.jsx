@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ClipboardList, Armchair, CreditCard, Pizza } from 'lucide-react'
+import { ClipboardList, Armchair, CreditCard, Pizza, Timer } from 'lucide-react'
 import pedidosService from '../../services/pedidosService'
 import mesasService from '../../services/mesasService'
 import pagosService from '../../services/pagosService'
@@ -20,6 +20,7 @@ function Dashboard() {
     mesasOcupadas: 0,
     ventasHoy: 0,
     totalProductos: 0,
+    preparacionPromedio: null,
   })
   const [pedidosRecientes, setPedidosRecientes] = useState([])
   const [mesas, setMesas] = useState([])
@@ -58,12 +59,26 @@ function Dashboard() {
         .filter(p => p.estado === 'completado' && p.fecha && new Date(p.fecha).toDateString() === hoy)
         .reduce((sum, p) => sum + Number(p.monto), 0)
 
+      // Preparación promedio de hoy: de "en preparación" a "listo", según el historial
+      const minutosPreparacion = pedidos
+        .map(p => {
+          const inicio = p.historial?.find(h => h.estado === 'en_preparacion')
+          const fin = p.historial?.find(h => h.estado === 'listo')
+          if (!inicio || !fin || new Date(fin.fecha).toDateString() !== hoy) return null
+          return (new Date(fin.fecha) - new Date(inicio.fecha)) / 60000
+        })
+        .filter(minutos => minutos !== null)
+      const preparacionPromedio = minutosPreparacion.length
+        ? Math.round(minutosPreparacion.reduce((sum, m) => sum + m, 0) / minutosPreparacion.length)
+        : null
+
       setStats({
         pedidosActivos: activos.length,
         mesasOcupadas: ocupadas.length,
         ventasHoy: ventasHoy,
         // Solo lo que el cliente ve en la carta: disponible y de categoría activa
         totalProductos: productos.filter(p => p.disponible && p.categoria?.activo).length,
+        preparacionPromedio,
       })
 
       // Últimos 5 pedidos activos
@@ -174,6 +189,18 @@ function Dashboard() {
           <div className={styles.statInfo}>
             <span className={styles.statValue}>{stats.totalProductos}</span>
             <span className={styles.statLabel}>Productos en carta</span>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+            <Timer size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <span className={styles.statValue}>
+              {stats.preparacionPromedio === null ? '—' : `${stats.preparacionPromedio} min`}
+            </span>
+            <span className={styles.statLabel}>Preparación promedio hoy</span>
           </div>
         </div>
       </div>

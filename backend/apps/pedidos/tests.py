@@ -2,9 +2,16 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.mesas.models import Mesa
-from apps.pedidos.models import DetallePedido
+from apps.pedidos.models import DetallePedido, Pedido
 from apps.productos.models import Categoria, Producto
 from apps.usuarios.models import Rol, Usuario
+
+
+def crear_usuario(rol):
+    return Usuario.objects.create_user(
+        f'{rol.lower()}@test.cl', rol, 'Prueba', 'clave-prueba',
+        rol=Rol.objects.get_or_create(nombre=rol)[0]
+    )
 
 
 class PedidoTestBase(APITestCase):
@@ -82,3 +89,114 @@ class NotaDetallePedidoTests(PedidoTestBase):
 
         self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
         self.assertEqual(respuesta.data[0]['detalles'][0]['nota'], 'bien cocida')
+
+
+class HistorialYTransicionesTests(PedidoTestBase):
+    """Cada cambio de estado queda registrado y solo avanza en orden, según el rol."""
+
+    def setUp(self):
+        super().setUp()
+        self.garzon = crear_usuario('Garzon')
+        self.cocina = crear_usuario('Cocina')
+        self.pedido_id = self.crear_pedido().data['id']
+
+    def avanzar(self, usuario, estado, pedido_id=None):
+        self.client.force_authenticate(usuario)
+        return self.client.patch(
+            f'/api/pedidos/{pedido_id or self.pedido_id}/estado/',
+            {'estado': estado},
+            format='json'
+        )
+
+    def historial(self, pedido_id=None):
+        return list(Pedido.objects.get(pk=pedido_id or self.pedido_id)
+                    .historial.values_list('estado', 'usuario__nombre'))
+
+    def test_crear_pedido_desde_la_carta_registra_pendiente_sin_usuario(self):
+        self.assertEqual(self.historial(), [('pendiente', None)])
+
+    def test_la_cocina_puede_empezar_un_pedido_pendiente(self):
+        respuesta = self.avanzar(self.cocina, 'en_preparacion')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.historial()[-1], ('en_preparacion', 'Cocina'))
+
+    def test_el_garzon_tambien_puede_empezar_un_pedido_pendiente(self):
+        respuesta = self.avanzar(self.garzon, 'en_preparacion')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+
+    def test_ciclo_completo_queda_en_el_historial_con_quien_lo_hizo(self):
+        self.avanzar(self.cocina, 'en_preparacion')
+        self.avanzar(self.cocina, 'listo')
+        respuesta = self.avanzar(self.garzon, 'entregado')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.historial(), [
+            ('pendiente', None),
+            ('en_preparacion', 'Cocina'),
+            ('listo', 'Cocina'),
+            ('entregado', 'Garzon'),
+        ])
+        self.assertEqual(
+            [h['estado'] for h in respuesta.data['historial']],
+            ['pendiente', 'en_preparacion', 'listo', 'entregado']
+        )
+
+    def test_no_se_puede_saltar_un_estado(self):
+        respuesta = self.avanzar(self.cocina, 'listo')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Pedido.objects.get(pk=self.pedido_id).estado, 'pendiente')
+
+    def test_no_se_puede_retroceder_un_pedido_entregado(self):
+        self.avanzar(self.cocina, 'en_preparacion')
+        self.avanzar(self.cocina, 'listo')
+        self.avanzar(self.garzon, 'entregado')
+
+        respuesta = self.avanzar(self.garzon, 'pendiente')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_el_garzon_no_puede_marcar_listo(self):
+        self.avanzar(self.cocina, 'en_preparacion')
+
+        respuesta = self.avanzar(self.garzon, 'listo')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_la_cocina_no_puede_entregar(self):
+        self.avanzar(self.cocina, 'en_preparacion')
+        self.avanzar(self.cocina, 'listo')
+
+        respuesta = self.avanzar(self.cocina, 'entregado')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_entregar_libera_la_mesa_solo_si_no_quedan_pedidos_activos(self):
+        otro_id = self.crear_pedido().data['id']
+        for pedido_id in (self.pedido_id, otro_id):
+            self.avanzar(self.cocina, 'en_preparacion', pedido_id)
+            self.avanzar(self.cocina, 'listo', pedido_id)
+
+        self.avanzar(self.garzon, 'entregado', self.pedido_id)
+        self.mesa.refresh_from_db()
+        self.assertEqual(self.mesa.estado, 'ocupada')
+
+        self.avanzar(self.garzon, 'entregado', otro_id)
+        self.mesa.refresh_from_db()
+        self.assertEqual(self.mesa.estado, 'libre')
+
+    def test_cobrar_un_pedido_listo_lo_entrega_y_lo_registra(self):
+        self.avanzar(self.cocina, 'en_preparacion')
+        self.avanzar(self.cocina, 'listo')
+        self.client.force_authenticate(self.garzon)
+
+        respuesta = self.client.post('/api/pagos/', {
+            'pedido_id': self.pedido_id, 'metodo_pago': 'efectivo', 'monto': '19980.00'
+        }, format='json')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.historial()[-1], ('entregado', 'Garzon'))
+        self.mesa.refresh_from_db()
+        self.assertEqual(self.mesa.estado, 'libre')

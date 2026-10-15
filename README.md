@@ -47,14 +47,14 @@ Los permisos se implementan en `backend/config/permissions.py` comparando el nom
 |-----|--------------------|
 | Administrador | Todos los módulos: usuarios, categorías, productos, mesas, pedidos y pagos |
 | Garzon | Pedidos (envía a cocina y marca como entregado), mesas y pagos (registrar y anular) |
-| Cocina | Pedidos (marca como listo los pedidos en preparación) |
+| Cocina | Pedidos (empieza los pendientes y marca como listos los que están en preparación) |
 | Cliente | Carta digital pública, sin autenticación |
 
 ## Flujo operativo
 
 1. El cliente escanea el QR de la mesa → `/carta?mesa=<id>`.
 2. Envía su pedido, con indicaciones opcionales por producto para la cocina (“sin cebolla”, máximo 140 caracteres) → se crea en estado `pendiente` y la mesa pasa a `ocupada`.
-3. Estados del pedido: `pendiente` → `en_preparacion` → `listo` → `entregado`. Al quedar entregado el último pedido activo de la mesa, esta vuelve a `libre`.
+3. Estados del pedido: `pendiente` → `en_preparacion` → `listo` → `entregado`, siempre en ese orden. Preparar lo hacen Cocina o Garzon; marcar listo, Cocina; entregar, Garzon (el Administrador puede todos). Cada cambio queda en el historial del pedido con su hora y quién lo hizo. Al quedar entregado el último pedido activo de la mesa, esta vuelve a `libre`.
 4. El garzón registra el pago de un pedido entregado (efectivo, débito, crédito o transferencia). El monto debe coincidir con el total del pedido.
 5. Un pago puede anularse y el pedido vuelve a quedar disponible para cobrarse; el pago anulado se conserva como historial. Cada pedido tiene a lo más un pago vigente. Solo los pagos anulados pueden eliminarse, y solo por el Administrador.
 
@@ -88,7 +88,7 @@ Todas las rutas cuelgan de `http://localhost:8000/api/`. Las marcadas como públ
 | | `GET pedidos/?estado=&mesa=` | Cualquier rol |
 | | `GET pedidos/<id>/` | Administrador o Cocina |
 | | `DELETE pedidos/<id>/` | Administrador (solo pendientes) |
-| | `PATCH pedidos/<id>/estado/` | Cualquier rol |
+| | `PATCH pedidos/<id>/estado/` | Según el paso: preparar (Admin, Garzon, Cocina), listo (Admin, Cocina), entregar (Admin, Garzon) |
 | Pagos | `GET, POST pagos/?estado=` | Administrador o Garzon |
 | | `GET pagos/<id>/` | Cualquier rol |
 | | `PATCH pagos/<id>/anular/` | Administrador o Garzon |

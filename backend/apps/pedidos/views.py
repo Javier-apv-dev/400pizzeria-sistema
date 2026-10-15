@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from config.permissions import EsPersonal, EsAdminOGarzon, EsAdminOCocina
 from config.permissions import EsAdministrador  # para el DELETE
 
-from apps.pedidos.models import Pedido, DetallePedido
+from apps.pedidos.models import Pedido, DetallePedido, HistorialEstadoPedido
 from apps.pedidos.serializers import (
     PedidoSerializer,
     CrearPedidoSerializer,
@@ -13,6 +13,14 @@ from apps.pedidos.serializers import (
 )
 from apps.productos.models import Producto
 from apps.mesas.models import Mesa
+
+# Avance permitido de un pedido: estado actual → (siguiente estado, roles que pueden hacerlo).
+# No se puede saltar ni retroceder estados.
+TRANSICIONES = {
+    Pedido.Estado.PENDIENTE: (Pedido.Estado.EN_PREPARACION, ('Administrador', 'Garzon', 'Cocina')),
+    Pedido.Estado.EN_PREPARACION: (Pedido.Estado.LISTO, ('Administrador', 'Cocina')),
+    Pedido.Estado.LISTO: (Pedido.Estado.ENTREGADO, ('Administrador', 'Garzon')),
+}
 
 
 class PedidoListView(APIView):
@@ -29,7 +37,7 @@ class PedidoListView(APIView):
         pedidos = Pedido.objects.select_related(
             'mesa', 'usuario'
         ).prefetch_related(
-            'detalles__producto'
+            'detalles__producto', 'historial__usuario'
         ).all().order_by('-fecha_creacion')
 
         if estado:
@@ -58,6 +66,11 @@ class PedidoListView(APIView):
             usuario=usuario,
             estado=Pedido.Estado.PENDIENTE,
             total=0
+        )
+        HistorialEstadoPedido.objects.create(
+            pedido=pedido,
+            estado=Pedido.Estado.PENDIENTE,
+            usuario=usuario
         )
 
         # Crear los detalles y calcular total
@@ -103,7 +116,7 @@ class PedidoDetailView(APIView):
             return Pedido.objects.select_related(
                 'mesa', 'usuario'
             ).prefetch_related(
-                'detalles__producto'
+                'detalles__producto', 'historial__usuario'
             ).get(pk=pk)
         except Pedido.DoesNotExist:
             return None
@@ -169,20 +182,22 @@ class PedidoEstadoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        pedido.estado = nuevo_estado
-        pedido.save()
+        siguiente, roles = TRANSICIONES.get(pedido.estado, (None, ()))
+        if nuevo_estado != siguiente:
+            return Response(
+                {'error': f'Un pedido en estado "{pedido.get_estado_display()}" '
+                          f'no puede pasar a "{Pedido.Estado(nuevo_estado).label}"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Si el pedido fue entregado, liberar la mesa
-        if nuevo_estado == Pedido.Estado.ENTREGADO:
-            pedidos_activos = Pedido.objects.filter(
-                mesa=pedido.mesa
-            ).exclude(
-                estado=Pedido.Estado.ENTREGADO
-            ).exclude(pk=pedido.pk)
+        if request.user.rol.nombre not in roles:
+            return Response(
+                {'error': f'El rol {request.user.rol.nombre} no puede pasar un pedido '
+                          f'a "{Pedido.Estado(nuevo_estado).label}"'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-            if not pedidos_activos.exists():
-                pedido.mesa.estado = Mesa.Estado.LIBRE
-                pedido.mesa.save()
+        pedido.registrar_estado(nuevo_estado, request.user)
 
         return Response(
             PedidoSerializer(pedido).data,

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.pedidos.models import Pedido, DetallePedido
+from apps.pedidos.models import Pedido, DetallePedido, HistorialEstadoPedido
 from apps.productos.serializers import ProductoSerializer
 from apps.mesas.serializers import MesaSerializer
 
@@ -24,8 +24,23 @@ class DetallePedidoSerializer(serializers.ModelSerializer):
         read_only_fields = ['precio_unitario', 'subtotal']
 
 
+class HistorialEstadoPedidoSerializer(serializers.ModelSerializer):
+    usuario = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HistorialEstadoPedido
+        fields = ['estado', 'fecha', 'usuario']
+
+    def get_usuario(self, obj):
+        # None cuando el cambio lo hizo el cliente desde la carta
+        if not obj.usuario:
+            return None
+        return f'{obj.usuario.nombre} {obj.usuario.apellido}'
+
+
 class PedidoSerializer(serializers.ModelSerializer):
     detalles = DetallePedidoSerializer(many=True, read_only=True)
+    historial = HistorialEstadoPedidoSerializer(many=True, read_only=True)
     mesa = MesaSerializer(read_only=True)
     mesa_id = serializers.IntegerField(write_only=True)
 
@@ -39,7 +54,8 @@ class PedidoSerializer(serializers.ModelSerializer):
             'mesa',
             'mesa_id',
             'usuario',
-            'detalles'
+            'detalles',
+            'historial'
         ]
         read_only_fields = ['total', 'fecha_creacion', 'usuario']
 

@@ -21,7 +21,8 @@ class PagoListView(APIView):
             'registrado_por',
             'anulado_por'
         ).prefetch_related(
-            'pedido__detalles__producto'
+            'pedido__detalles__producto',
+            'pedido__historial__usuario'
         ).all().order_by('-fecha')
 
         if estado:
@@ -56,8 +57,9 @@ class PagoListView(APIView):
             registrado_por=request.user
         )
 
-        pedido.estado = Pedido.Estado.ENTREGADO
-        pedido.save()
+        # Cobrar cierra el pedido: queda en el historial y libera la mesa si corresponde
+        if pedido.estado != Pedido.Estado.ENTREGADO:
+            pedido.registrar_estado(Pedido.Estado.ENTREGADO, request.user)
 
         return Response(
             PagoSerializer(pago).data,
@@ -76,7 +78,8 @@ class PagoDetailView(APIView):
                 'registrado_por',
                 'anulado_por'
             ).prefetch_related(
-                'pedido__detalles__producto'
+                'pedido__detalles__producto',
+                'pedido__historial__usuario'
             ).get(pk=pk)
         except Pago.DoesNotExist:
             return None
