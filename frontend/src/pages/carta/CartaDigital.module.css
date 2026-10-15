@@ -131,6 +131,11 @@
 }
 
 /* ---- Carrito flotante ---- */
+/* Espacio al final de la carta para que la barra flotante no tape el último producto */
+.withCartBar {
+  padding-bottom: 6rem;
+}
+
 .cartFloat {
   position: fixed;
   bottom: var(--space-md);

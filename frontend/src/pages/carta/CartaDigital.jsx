@@ -117,7 +117,7 @@ function CartaDigital() {
   }
 
   return (
-    <div>
+    <div className={getTotalItems() > 0 ? styles.withCartBar : undefined}>
       <Toaster position="top-center" />
 
       {/* Tabs de categorías */}
