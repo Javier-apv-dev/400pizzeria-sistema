@@ -1,13 +1,11 @@
 import { AuthProvider } from './context/AuthContext'
-import { CartProvider } from './context/CartContext'
 import AppRouter from './routes/AppRouter'
 
+// El carrito (CartProvider) vive en CartaLayout: es solo de la carta y va por mesa
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <AppRouter />
-      </CartProvider>
+      <AppRouter />
     </AuthProvider>
   )
 }

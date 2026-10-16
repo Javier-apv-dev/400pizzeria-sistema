@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import { BellRing, Receipt } from 'lucide-react'
+import { CartProvider } from '../context/CartContext'
 import mesasService from '../services/mesasService'
 import solicitudesService from '../services/solicitudesService'
 import styles from './CartaLayout.module.css'
@@ -90,7 +91,10 @@ function CartaLayout() {
       </header>
 
       <main className={styles.main}>
-        <Outlet />
+        {/* key: al cambiar de mesa se carga el carrito guardado de esa mesa */}
+        <CartProvider key={mesa} mesa={mesa}>
+          <Outlet />
+        </CartProvider>
       </main>
     </div>
   )

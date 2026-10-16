@@ -1,6 +1,25 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 const CartContext = createContext()
+
+// El carrito se guarda en el navegador para sobrevivir a una recarga.
+// Pasado este tiempo se descarta, para no revivir un pedido de otra visita.
+const VIGENCIA_CARRITO_MS = 3 * 60 * 60 * 1000
+
+function claveCarrito(mesa) {
+  return `carrito-mesa-${mesa}`
+}
+
+function leerCarritoGuardado(mesa) {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(claveCarrito(mesa)))
+    if (!guardado || Date.now() - guardado.guardado > VIGENCIA_CARRITO_MS) return []
+    return Array.isArray(guardado.items) ? guardado.items : []
+  } catch {
+    // Navegación privada, almacenamiento bloqueado o dato corrupto: carrito vacío
+    return []
+  }
+}
 
 // Cada línea del carrito es un producto con una indicación: la misma pizza
 // "sin albahaca" y sin indicación son líneas distintas
@@ -25,8 +44,22 @@ function motivoLimite(items, id) {
   return null
 }
 
-export function CartProvider({ children }) {
-  const [items, setItems] = useState([])
+// Un carrito por mesa: CartaLayout lo monta con key={mesa}
+export function CartProvider({ children, mesa }) {
+  const [items, setItems] = useState(() => (mesa ? leerCarritoGuardado(mesa) : []))
+
+  useEffect(() => {
+    if (!mesa) return
+    try {
+      if (items.length === 0) {
+        localStorage.removeItem(claveCarrito(mesa))
+      } else {
+        localStorage.setItem(claveCarrito(mesa), JSON.stringify({ guardado: Date.now(), items }))
+      }
+    } catch {
+      // Si el navegador no permite guardar, el carrito sigue funcionando en memoria
+    }
+  }, [mesa, items])
 
   // Devuelve el motivo si no se pudo agregar (tope alcanzado), o null
   function addItem(producto, nota = '') {
