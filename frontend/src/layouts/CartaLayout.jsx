@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import { BellRing, Receipt } from 'lucide-react'
+import mesasService from '../services/mesasService'
 import solicitudesService from '../services/solicitudesService'
 import styles from './CartaLayout.module.css'
 
@@ -15,9 +16,21 @@ const ACCIONES = [
 
 function CartaLayout() {
   const [searchParams] = useSearchParams()
+  // El QR trae el id interno de la mesa; al cliente se le muestra su número
   const mesa = searchParams.get('mesa')
+  const [mesaNumero, setMesaNumero] = useState(null)
+  const [mesaInexistente, setMesaInexistente] = useState(false)
   // Estado de cada botón: undefined | 'enviando' | 'avisado' | 'error'
   const [avisos, setAvisos] = useState({})
+
+  useEffect(() => {
+    if (!mesa) return
+    let montado = true
+    mesasService.getById(mesa)
+      .then(response => { if (montado) setMesaNumero(response.data.numero) })
+      .catch(error => { if (montado && error.response?.status === 404) setMesaInexistente(true) })
+    return () => { montado = false }
+  }, [mesa])
 
   async function solicitar(tipo) {
     setAvisos(prev => ({ ...prev, [tipo]: 'enviando' }))
@@ -47,9 +60,16 @@ function CartaLayout() {
           className={styles.logo}
         />
         <h1 className={styles.title}>400 Pizzería</h1>
-        {mesa && <p className={styles.mesaInfo}>Mesa {mesa}</p>}
+        {mesa && !mesaInexistente && (
+          <p className={styles.mesaInfo}>{mesaNumero ? `Mesa ${mesaNumero}` : ' '}</p>
+        )}
+        {mesaInexistente && (
+          <p className={styles.mesaError}>
+            No encontramos esta mesa. Escanea de nuevo el código QR o pide ayuda al personal.
+          </p>
+        )}
 
-        {mesa && (
+        {mesa && !mesaInexistente && (
           <div className={styles.acciones}>
             {ACCIONES.map(accion => {
               const estado = avisos[accion.tipo]

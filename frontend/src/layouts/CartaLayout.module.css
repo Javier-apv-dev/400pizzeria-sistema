@@ -31,6 +31,12 @@
   margin-top: var(--space-xs);
 }
 
+.mesaError {
+  font-size: var(--text-xs);
+  color: var(--color-error);
+  margin-top: var(--space-xs);
+}
+
 /* ---- Llamar al garzón / pedir la cuenta ---- */
 .acciones {
   display: flex;
