@@ -130,6 +130,13 @@
   background-color: var(--color-accent-hover);
 }
 
+/* Foco visible al navegar con teclado (tarjetas y barra del carrito son clicables) */
+.productCard:focus-visible,
+.cartFloat:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* ---- Carrito flotante ---- */
 /* Espacio al final de la carta para que la barra flotante no tape el último producto */
 .withCartBar {

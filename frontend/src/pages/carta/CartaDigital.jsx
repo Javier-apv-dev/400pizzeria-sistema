@@ -86,6 +86,21 @@ function CartaDigital() {
     }
   }
 
+  // Para elementos que no son <button> pero se activan con clic: Enter o espacio
+  function alActivar(accion) {
+    return (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        accion()
+      }
+    }
+  }
+
+  function abrirDetalle(prod) {
+    setNota('')
+    setSelectedProduct(prod)
+  }
+
   function formatPrice(price) {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -141,7 +156,16 @@ function CartaDigital() {
           <div className={styles.empty}>No hay productos disponibles</div>
         ) : (
           productos.map((prod) => (
-            <div key={prod.id} className={styles.productCard} onClick={() => { setNota(''); setSelectedProduct(prod); }} style={{ cursor: 'pointer' }}>
+            <div
+              key={prod.id}
+              className={styles.productCard}
+              role="button"
+              tabIndex={0}
+              aria-label={`Ver detalle de ${prod.nombre}`}
+              onClick={() => abrirDetalle(prod)}
+              onKeyDown={alActivar(() => abrirDetalle(prod))}
+              style={{ cursor: 'pointer' }}
+            >
               {prod.imagen ? (
                 <img src={prod.imagen} alt={prod.nombre} className={styles.productImage} />
               ) : (
@@ -158,7 +182,12 @@ function CartaDigital() {
                 </div>
                 <div className={styles.productFooter}>
                   <span className={styles.productPrice}>{formatPrice(prod.precio)}</span>
-                  <button className={styles.addToCartButton} onClick={(e) => { e.stopPropagation(); addItem(prod); }}>
+                  <button
+                    className={styles.addToCartButton}
+                    aria-label={`Agregar ${prod.nombre} al pedido`}
+                    onClick={(e) => { e.stopPropagation(); addItem(prod); }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
                     <Plus size={18} />
                   </button>
                 </div>
@@ -223,7 +252,14 @@ function CartaDigital() {
 
       {/* Botón flotante del carrito */}
       {getTotalItems() > 0 && (
-        <div className={styles.cartFloat} onClick={() => setCartOpen(true)}>
+        <div
+          className={styles.cartFloat}
+          role="button"
+          tabIndex={0}
+          aria-label={`Ver pedido: ${getTotalItems()} productos, ${formatPrice(getTotal())}`}
+          onClick={() => setCartOpen(true)}
+          onKeyDown={alActivar(() => setCartOpen(true))}
+        >
           <div className={styles.cartFloatLeft}>
             <span className={styles.cartBadge}>{getTotalItems()}</span>
             <span className={styles.cartFloatText}>Ver pedido</span>
@@ -248,6 +284,7 @@ function CartaDigital() {
                 <div className={styles.cartItemControls}>
                   <button
                     className={styles.qtyButton}
+                    aria-label={`Quitar uno de ${item.nombre}`}
                     onClick={() => updateQuantity(item.lineaId, item.cantidad - 1)}
                   >
                     <Minus size={14} />
@@ -255,6 +292,7 @@ function CartaDigital() {
                   <span className={styles.qtyValue}>{item.cantidad}</span>
                   <button
                     className={styles.qtyButton}
+                    aria-label={`Agregar otro ${item.nombre}`}
                     onClick={() => updateQuantity(item.lineaId, item.cantidad + 1)}
                   >
                     <Plus size={14} />
