@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
 from django.db.models import ProtectedError
+from django.utils import timezone
 from config.permissions import EsAdministrador, EsAdminOGarzon
 
-from apps.mesas.models import Mesa
-from apps.mesas.serializers import MesaSerializer
+from apps.mesas.models import Mesa, Solicitud
+from apps.mesas.serializers import MesaSerializer, SolicitudSerializer
 import qrcode
 import base64
 from io import BytesIO
@@ -178,3 +179,76 @@ class MesaQRView(APIView):
             {'mensaje': 'QR regenerado correctamente', 'qr_code': mesa.qr_code},
             status=status.HTTP_200_OK
         )
+
+# ─────────────────────────────────────────────
+# Solicitudes desde la mesa: llamar al garzón o pedir la cuenta
+# ─────────────────────────────────────────────
+
+class SolicitudCrearView(APIView):
+    permission_classes = [AllowAny]  # público: lo usa el cliente desde la carta
+
+    def post(self, request, pk):
+        try:
+            mesa = Mesa.objects.get(pk=pk)
+        except Mesa.DoesNotExist:
+            return Response(
+                {'error': 'Mesa no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        tipo = request.data.get('tipo')
+        if tipo not in Solicitud.Tipo.values:
+            return Response(
+                {'error': f'Tipo inválido. Opciones: {list(Solicitud.Tipo.values)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Si la mesa ya tiene una solicitud pendiente del mismo tipo se devuelve
+        # esa: tocar el botón varias veces no inunda al garzón de avisos
+        pendiente = mesa.solicitudes.filter(
+            tipo=tipo, estado=Solicitud.Estado.PENDIENTE
+        ).first()
+        if pendiente:
+            return Response(SolicitudSerializer(pendiente).data, status=status.HTTP_200_OK)
+
+        solicitud = Solicitud.objects.create(mesa=mesa, tipo=tipo)
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_201_CREATED)
+
+
+class SolicitudListView(APIView):
+    permission_classes = [EsAdminOGarzon]
+
+    def get(self, request):
+        solicitudes = Solicitud.objects.select_related('mesa', 'atendida_por')
+        estado = request.query_params.get('estado')
+        if estado:
+            solicitudes = solicitudes.filter(estado=estado)
+        return Response(
+            SolicitudSerializer(solicitudes, many=True).data,
+            status=status.HTTP_200_OK
+        )
+
+
+class SolicitudAtenderView(APIView):
+    permission_classes = [EsAdminOGarzon]
+
+    def patch(self, request, pk):
+        try:
+            solicitud = Solicitud.objects.select_related('mesa').get(pk=pk)
+        except Solicitud.DoesNotExist:
+            return Response(
+                {'error': 'Solicitud no encontrada'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if solicitud.estado == Solicitud.Estado.ATENDIDA:
+            return Response(
+                {'error': 'Esta solicitud ya fue atendida'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        solicitud.estado = Solicitud.Estado.ATENDIDA
+        solicitud.atendida_por = request.user
+        solicitud.atendida_en = timezone.now()
+        solicitud.save()
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)

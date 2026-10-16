@@ -55,8 +55,9 @@ Los permisos se implementan en `backend/config/permissions.py` comparando el nom
 1. El cliente escanea el QR de la mesa → `/carta?mesa=<id>`.
 2. Envía su pedido, con indicaciones opcionales por producto para la cocina (“sin cebolla”, máximo 140 caracteres) → se crea en estado `pendiente` y la mesa pasa a `ocupada`.
 3. Estados del pedido: `pendiente` → `en_preparacion` → `listo` → `entregado`, siempre en ese orden. Preparar lo hacen Cocina o Garzon; marcar listo, Cocina; entregar, Garzon (el Administrador puede todos). Cada cambio queda en el historial del pedido con su hora y quién lo hizo. Al quedar entregado el último pedido activo de la mesa, esta vuelve a `libre`.
-4. El garzón registra el pago de un pedido entregado (efectivo, débito, crédito o transferencia). El monto debe coincidir con el total del pedido.
-5. Un pago puede anularse y el pedido vuelve a quedar disponible para cobrarse; el pago anulado se conserva como historial. Cada pedido tiene a lo más un pago vigente. Solo los pagos anulados pueden eliminarse, y solo por el Administrador.
+4. En cualquier momento el cliente puede **llamar al garzón** o **pedir la cuenta** desde la carta. El aviso aparece arriba de cualquier pantalla del panel para Garzon y Administrador, que lo marcan como atendido. Si la mesa toca el botón varias veces, el aviso no se duplica.
+5. El garzón registra el pago de un pedido entregado (efectivo, débito, crédito o transferencia). El monto debe coincidir con el total del pedido.
+6. Un pago puede anularse y el pedido vuelve a quedar disponible para cobrarse; el pago anulado se conserva como historial. Cada pedido tiene a lo más un pago vigente. Solo los pagos anulados pueden eliminarse, y solo por el Administrador.
 
 ## API REST
 
@@ -84,6 +85,9 @@ Todas las rutas cuelgan de `http://localhost:8000/api/`. Las marcadas como públ
 | | `POST mesas/`, `PUT, DELETE mesas/<id>/` | Administrador (POST genera el QR) |
 | | `PATCH mesas/<id>/estado/` | Administrador o Garzon |
 | | `POST mesas/<id>/qr/` | Administrador (regenera el QR) |
+| | `POST mesas/<id>/solicitudes/` | Público (cuerpo `{"tipo": "garzon"}` o `{"tipo": "cuenta"}`) |
+| Solicitudes | `GET solicitudes/?estado=` | Administrador o Garzon |
+| | `PATCH solicitudes/<id>/atender/` | Administrador o Garzon |
 | Pedidos | `POST pedidos/` | Público (carta digital) |
 | | `GET pedidos/?estado=&mesa=` | Cualquier rol |
 | | `GET pedidos/<id>/` | Administrador o Cocina |

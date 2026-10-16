@@ -13,7 +13,11 @@ import {
   Menu,
   X
 } from 'lucide-react'
+import SolicitudesAviso from '../components/SolicitudesAviso'
 import styles from './AdminLayout.module.css'
+
+// Roles que atienden los avisos de las mesas (endpoint /solicitudes/ es EsAdminOGarzon)
+const ROLES_SOLICITUDES = ['Administrador', 'Garzon']
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -111,6 +115,8 @@ function AdminLayout() {
           />
           <div style={{ width: 24 }} />
         </div>
+
+        {ROLES_SOLICITUDES.includes(user?.rol?.nombre) && <SolicitudesAviso />}
 
         <Outlet />
       </main>
