@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { sonarAviso } from '../../utils/avisoSonoro'
 import { Trash2, ChefHat, UtensilsCrossed, CheckCircle, ArrowRight } from 'lucide-react'
 import pedidosService from '../../services/pedidosService'
 import toast, { Toaster } from 'react-hot-toast'
@@ -55,8 +56,11 @@ function Pedidos() {
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('activos')
+  // Pedidos ya vistos en el filtro actual; null hasta la primera carga (que no suena)
+  const idsVistos = useRef(null)
 
   useEffect(() => {
+    idsVistos.current = null
     loadPedidos()
 
     // Auto-refrescar cada 10 segundos
@@ -67,12 +71,21 @@ function Pedidos() {
     return () => clearInterval(interval)
   }, [filtro])
 
+  // Muestra la lista y suena si apareció un pedido que no estaba en la vista
+  function mostrarPedidos(lista) {
+    if (idsVistos.current && lista.some(p => !idsVistos.current.has(p.id))) {
+      sonarAviso()
+    }
+    idsVistos.current = new Set(lista.map(p => p.id))
+    setPedidos(lista)
+  }
+
   async function loadPedidos() {
     try {
       if (filtro === 'activos') {
         // Lo que falta por atender, del más antiguo al más nuevo (orden de cocina)
         const response = await pedidosService.getAll()
-        setPedidos(
+        mostrarPedidos(
           response.data
             .filter(p => p.estado !== 'entregado')
             .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion))
@@ -82,7 +95,7 @@ function Pedidos() {
       const response = filtro
         ? await pedidosService.getByEstado(filtro)
         : await pedidosService.getAll()
-      setPedidos(response.data)
+      mostrarPedidos(response.data)
     } catch (error) {
       toast.error('Error al cargar los pedidos')
     } finally {

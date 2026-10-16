@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BellRing, Receipt, Check } from 'lucide-react'
 import solicitudesService from '../services/solicitudesService'
+import { sonarAviso } from '../utils/avisoSonoro'
 import styles from './SolicitudesAviso.module.css'
 
 // Mismo intervalo que la pantalla de pedidos
@@ -20,9 +21,18 @@ function SolicitudesAviso() {
 
   useEffect(() => {
     let montado = true
+    // Solicitudes ya vistas; null hasta la primera carga (que no suena)
+    let idsVistos = null
     function cargar() {
       solicitudesService.getPendientes()
-        .then(response => { if (montado) setSolicitudes(response.data) })
+        .then(response => {
+          if (!montado) return
+          if (idsVistos && response.data.some(s => !idsVistos.has(s.id))) {
+            sonarAviso()
+          }
+          idsVistos = new Set(response.data.map(s => s.id))
+          setSolicitudes(response.data)
+        })
         // Si falla una consulta se mantiene la lista anterior; la siguiente lo reintenta
         .catch(() => {})
     }
