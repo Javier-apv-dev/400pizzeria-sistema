@@ -22,7 +22,13 @@ function CartaDigital() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [nota, setNota] = useState('')
 
-  const { items, addItem, updateQuantity, clearCart, getTotal, getTotalItems } = useCart()
+  const { items, addItem, updateQuantity, clearCart, getTotal, getTotalItems, limiteAlcanzado } = useCart()
+
+  // Agrega al carrito y avisa si se alcanzó el tope de unidades
+  function agregar(producto, notaProducto) {
+    const motivo = addItem(producto, notaProducto)
+    if (motivo) toast.error(motivo)
+  }
 
   useEffect(() => {
     loadData()
@@ -80,7 +86,9 @@ function CartaDigital() {
       setCartOpen(false)
       setOrderSent(true)
     } catch (error) {
-      toast.error('Error al enviar el pedido')
+      // El backend explica el rechazo (tope de unidades, producto agotado, mesa inexistente)
+      const data = error.response?.data
+      toast.error(data?.productos?.[0] || data?.mesa_id?.[0] || 'Error al enviar el pedido')
     } finally {
       setSending(false)
     }
@@ -185,7 +193,7 @@ function CartaDigital() {
                   <button
                     className={styles.addToCartButton}
                     aria-label={`Agregar ${prod.nombre} al pedido`}
-                    onClick={(e) => { e.stopPropagation(); addItem(prod); }}
+                    onClick={(e) => { e.stopPropagation(); agregar(prod); }}
                     onKeyDown={(e) => e.stopPropagation()}
                   >
                     <Plus size={18} />
@@ -238,7 +246,7 @@ function CartaDigital() {
               <button
                 className={styles.confirmButton}
                 style={{ flex: 'unset', padding: '0.6rem 1.5rem' }}
-                onClick={() => { addItem(selectedProduct, nota); setSelectedProduct(null); }}
+                onClick={() => { agregar(selectedProduct, nota); setSelectedProduct(null); }}
               >
                 Agregar
               </button>
@@ -294,6 +302,7 @@ function CartaDigital() {
                     className={styles.qtyButton}
                     aria-label={`Agregar otro ${item.nombre}`}
                     onClick={() => updateQuantity(item.lineaId, item.cantidad + 1)}
+                    disabled={limiteAlcanzado(item.lineaId)}
                   >
                     <Plus size={14} />
                   </button>

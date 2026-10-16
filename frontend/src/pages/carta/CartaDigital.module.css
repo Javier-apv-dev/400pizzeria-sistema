@@ -297,9 +297,15 @@
   transition: all var(--transition-fast);
 }
 
-.qtyButton:hover {
+.qtyButton:hover:not(:disabled) {
   border-color: var(--color-accent);
   color: var(--color-accent);
+}
+
+/* Tope de unidades alcanzado */
+.qtyButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .qtyValue {

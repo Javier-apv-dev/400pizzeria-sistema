@@ -91,6 +91,41 @@ class NotaDetallePedidoTests(PedidoTestBase):
         self.assertEqual(respuesta.data[0]['detalles'][0]['nota'], 'bien cocida')
 
 
+
+class LimitesDeCantidadTests(PedidoTestBase):
+    """La carta es pública: el pedido tiene topes para frenar pedidos absurdos."""
+
+    def test_acepta_el_maximo_por_producto(self):
+        respuesta = self.crear_pedido(cantidad=20)
+
+        self.assertEqual(respuesta.status_code, status.HTTP_201_CREATED)
+
+    def test_rechaza_mas_de_20_unidades_de_un_producto(self):
+        respuesta = self.crear_pedido(cantidad=21)
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('20', str(respuesta.data['productos']))
+
+    def test_rechaza_pedidos_de_mas_de_50_unidades_aunque_se_repartan_en_lineas(self):
+        respuesta = self.client.post('/api/pedidos/', {
+            'mesa_id': self.mesa.id,
+            'productos': [
+                {'producto_id': self.margherita.id, 'cantidad': 20},
+                {'producto_id': self.margherita.id, 'cantidad': 20, 'nota': 'sin albahaca'},
+                {'producto_id': self.margherita.id, 'cantidad': 11, 'nota': 'bien cocida'},
+            ]
+        }, format='json')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('50', str(respuesta.data['productos']))
+        self.assertFalse(DetallePedido.objects.exists())
+
+    def test_cantidad_que_no_es_numero_responde_400_y_no_500(self):
+        respuesta = self.crear_pedido(cantidad='abc')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class HistorialYTransicionesTests(PedidoTestBase):
     """Cada cambio de estado queda registrado y solo avanza en orden, según el rol."""
 

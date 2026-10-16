@@ -5,6 +5,11 @@ from apps.mesas.serializers import MesaSerializer
 
 NOTA_MAX = DetallePedido._meta.get_field('nota').max_length
 
+# Topes de un pedido desde la carta (pública): evitan pedidos absurdos o de broma.
+# El frontend usa los mismos valores (src/context/CartContext.jsx)
+CANTIDAD_MAX_POR_PRODUCTO = 20
+UNIDADES_MAX_POR_PEDIDO = 50
+
 
 class DetallePedidoSerializer(serializers.ModelSerializer):
     producto = ProductoSerializer(read_only=True)
@@ -80,6 +85,7 @@ class CrearPedidoSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'El pedido debe tener al menos un producto'
             )
+        unidades = 0
         for item in value:
             if 'producto_id' not in item:
                 raise serializers.ValidationError(
@@ -89,9 +95,25 @@ class CrearPedidoSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     'Cada producto debe tener cantidad'
                 )
-            if int(item['cantidad']) <= 0:
+            try:
+                cantidad = int(item['cantidad'])
+                int(item['producto_id'])
+            except (TypeError, ValueError):
+                raise serializers.ValidationError(
+                    'producto_id y cantidad deben ser números enteros'
+                )
+            if cantidad <= 0:
                 raise serializers.ValidationError(
                     'La cantidad debe ser mayor a 0'
+                )
+            if cantidad > CANTIDAD_MAX_POR_PRODUCTO:
+                raise serializers.ValidationError(
+                    f'La cantidad máxima por producto es {CANTIDAD_MAX_POR_PRODUCTO}'
+                )
+            unidades += cantidad
+            if unidades > UNIDADES_MAX_POR_PEDIDO:
+                raise serializers.ValidationError(
+                    f'Un pedido puede tener como máximo {UNIDADES_MAX_POR_PEDIDO} unidades'
                 )
             nota = item.get('nota', '')
             if not isinstance(nota, str):
