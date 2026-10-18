@@ -20,7 +20,7 @@ Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8
    - **No aplica.**
 4. **Evidencia.** Se guarda una captura por caso con el nombre `<ID>_<fecha>.png`, por ejemplo `CF-06_2026-10-25.png`.
 5. **Defectos.** Si un caso falla, se registra el defecto en la última sección, con la captura y los pasos para repetirlo.
-6. **Limitaciones conocidas.** Las limitaciones L1 a L6 de la matriz de trazabilidad no se informan como defectos. Por ejemplo, que un rol inexistente enviado directo a la API responda 500.
+6. **Limitaciones conocidas.** Las limitaciones L1 a L7 de la matriz de trazabilidad no se informan como defectos. Por ejemplo, que un rol inexistente enviado directo a la API responda 500.
 
 ## Datos de prueba
 
@@ -547,13 +547,13 @@ Cada requerimiento se verifica con pruebas automatizadas, con casos de este cat�
 | ID | Observación | Efecto |
 |---|---|---|
 | O1 | El formulario de usuarios exige una contraseña de al menos 8 caracteres; la API acepta 6 | Ninguno para el uso normal: el formulario es más estricto. Se documenta para que no se informe como defecto |
-| — | Limitaciones L1 a L6 de la matriz de trazabilidad (rol o categoría inexistentes → 500 vía API, cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, creación de pedidos sin transacción atómica) | Conocidas y documentadas; no se informan como defectos |
+| — | Limitaciones L1 a L7 de la matriz de trazabilidad (rol o categoría inexistentes → 500 vía API, cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, creación de pedidos sin transacción atómica, vistas de pedidos y pagos que descargan todo el historial) | Conocidas y documentadas; no se informan como defectos. L7 viene del defecto D-01 |
 
 ## Registro de defectos
 
 | ID | Fecha | Caso | Descripción | Pasos para repetirlo | Severidad | Estado | Issue o commit | Detectado por |
 |---|---|---|---|---|---|---|---|---|
-| D-01 | 2026-10-18 | CNF-04, CNF-05 | Con 500 pedidos y 10 usuarios simultáneos sin pausa, `GET /api/pedidos/` (vista «Activos») tarda 2.620 ms en el p95 (umbral: 800) y `GET /api/pagos/`, 4.087 ms (umbral: 1.500). Cada respuesta pesa más de 1 MB porque trae todo el historial. Al ritmo de la interfaz (un sondeo cada 10 s) cumple, con poco margen: 726 ms | CNF-05 con `cargar_datos_qa --volumen` y `medir_tiempos` | Media | Abierto | `#16` | Script `medir_tiempos` |
+| D-01 | 2026-10-18 | CNF-05 | Con 500 pedidos y 10 usuarios simultáneos sin pausa, en dos corridas, `GET /api/pedidos/` (vista «Activos») tarda 2.620 y 3.017 ms en el p95 (umbral: 800) y `GET /api/pagos/`, 4.087 y 5.119 ms (umbral: 1.500). Cada respuesta pesa más de 1 MB porque trae todo el historial. Al ritmo de la interfaz (un sondeo cada 10 s) cumple, con poco margen: 662 y 726 ms. Con los datos base (CNF-04) no ocurre | CNF-05 con `cargar_datos_qa --volumen` y `medir_tiempos` | Media | Abierto: aceptado como limitación L7 el 18-oct (no se corrige antes de la entrega) | `#16` | Script `medir_tiempos` |
 | D-02 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos peticiones para avanzar el mismo pedido, el servidor acepta las dos y el historial registra el paso dos veces | Enviar dos `PATCH /api/pedidos/<id>/estado/` simultáneos con el siguiente estado, por ejemplo con un doble toque en el botón de avanzar. Se repitió en 50 de 50 intentos; tras la corrección, 0 de 50 (la segunda petición responde 409) | Baja | Verificado | `#19` · `bd23374` | Script `medir_tiempos` |
 | D-03 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos cobros del mismo pedido, el servidor registra los dos: quedan dos pagos vigentes y la venta se cuenta dos veces. Contradice la regla de un solo pago vigente (RF25, RNF7) | Enviar dos `POST /api/pagos/` simultáneos para el mismo pedido entregado, por ejemplo desde dos dispositivos. Se repitió en 50 de 50 intentos; tras la corrección, 0 de 50 (el segundo cobro responde 400) | Alta | Verificado | `#20` · `3ca5a8d` | Script `medir_tiempos` |
 
