@@ -170,4 +170,15 @@ El catálogo de casos para ejecución manual, con 29 casos funcionales y 10 no f
 
 ## Metodología
 
-El proyecto se gestionó con la Guía PMBOK 6 como marco de planificación y control, y el software se desarrolló con Scrum adaptado a un proyecto individual, en 8 sprints de 2 semanas (marzo a junio de 2026).
+El proyecto se gestionó con la Guía PMBOK 6 como marco de planificación y control: fases, hitos, riesgos, costos y calidad. El software se desarrolló con **Kanban**, como un flujo continuo de tareas con un máximo de dos en curso, registrado en el [tablero del proyecto](https://github.com/users/Javier-apv-dev/projects/1). Cada tarea terminada corresponde a un commit de este repositorio.
+
+El sistema se entregó en cuatro etapas:
+
+| Entrega | Fecha | Contenido |
+|---------|-------|-----------|
+| 1. Núcleo | 10-abr-2026 | Modelo de datos, API, carta digital con QR y panel administrativo |
+| 2. Control de acceso | 10 al 16-abr-2026 | Permisos por rol, gestión de usuarios y trazabilidad de pagos |
+| 3. Revisión y corrección | 12 al 15-oct-2026 | Renovación del token, README y corrección de 7 defectos detectados en un diagnóstico |
+| 4. Mejoras | 15-oct-2026 | Indicaciones del cliente, historial de estados, avisos de mesa y mejoras de uso |
+
+La planificación inicial contemplaba un Scrum adaptado con sprints. Como el trabajo real fue un flujo de tareas de distinto tamaño, en octubre de 2026 se adoptó Kanban y se formalizó con el tablero.
