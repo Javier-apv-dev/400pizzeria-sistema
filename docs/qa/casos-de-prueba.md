@@ -2,9 +2,9 @@
 
 Casos de prueba funcionales y no funcionales del sistema. Los ejecutan los QA testers sobre el sistema completo: carta digital y panel administrativo.
 
-Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 113.
+Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 115.
 
-- **Versión del catálogo:** 1.1, del 18 de octubre de 2026 (comandos del entorno de prueba y primeros defectos registrados).
+- **Versión del catálogo:** 1.2, del 18 de octubre de 2026 (comandos del entorno de prueba, defectos D-01 a D-03 y verificación de D-02 y D-03).
 - **Sistema bajo prueba:** rama `main` desde el commit `74c2adf`.
 
 ## Cómo usar este catálogo
@@ -554,8 +554,8 @@ Cada requerimiento se verifica con pruebas automatizadas, con casos de este cat�
 | ID | Fecha | Caso | Descripción | Pasos para repetirlo | Severidad | Estado | Issue o commit | Detectado por |
 |---|---|---|---|---|---|---|---|---|
 | D-01 | 2026-10-18 | CNF-04, CNF-05 | Con 500 pedidos y 10 usuarios simultáneos sin pausa, `GET /api/pedidos/` (vista «Activos») tarda 2.620 ms en el p95 (umbral: 800) y `GET /api/pagos/`, 4.087 ms (umbral: 1.500). Cada respuesta pesa más de 1 MB porque trae todo el historial. Al ritmo de la interfaz (un sondeo cada 10 s) cumple, con poco margen: 726 ms | CNF-05 con `cargar_datos_qa --volumen` y `medir_tiempos` | Media | Abierto | `#16` | Script `medir_tiempos` |
-| D-02 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos peticiones para avanzar el mismo pedido, el servidor acepta las dos y el historial registra el paso dos veces | Enviar dos `PATCH /api/pedidos/<id>/estado/` simultáneos con el siguiente estado, por ejemplo con un doble toque en el botón de avanzar. Se repitió en 50 de 50 intentos | Baja | Abierto | — | Script `medir_tiempos` |
-| D-03 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos cobros del mismo pedido, el servidor registra los dos: quedan dos pagos vigentes y la venta se cuenta dos veces. Contradice la regla de un solo pago vigente (RF25, RNF7) | Enviar dos `POST /api/pagos/` simultáneos para el mismo pedido entregado, por ejemplo desde dos dispositivos. Se repitió en 50 de 50 intentos | Alta | Abierto | — | Script `medir_tiempos` |
+| D-02 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos peticiones para avanzar el mismo pedido, el servidor acepta las dos y el historial registra el paso dos veces | Enviar dos `PATCH /api/pedidos/<id>/estado/` simultáneos con el siguiente estado, por ejemplo con un doble toque en el botón de avanzar. Se repitió en 50 de 50 intentos; tras la corrección, 0 de 50 (la segunda petición responde 409) | Baja | Verificado | `#19` · `bd23374` | Script `medir_tiempos` |
+| D-03 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos cobros del mismo pedido, el servidor registra los dos: quedan dos pagos vigentes y la venta se cuenta dos veces. Contradice la regla de un solo pago vigente (RF25, RNF7) | Enviar dos `POST /api/pagos/` simultáneos para el mismo pedido entregado, por ejemplo desde dos dispositivos. Se repitió en 50 de 50 intentos; tras la corrección, 0 de 50 (el segundo cobro responde 400) | Alta | Verificado | `#20` · `3ca5a8d` | Script `medir_tiempos` |
 
 **Severidad:**
 - **Crítica:** impide operar.

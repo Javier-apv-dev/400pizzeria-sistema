@@ -148,7 +148,7 @@ El panel queda en `http://localhost:5173/login` y la carta digital en `http://lo
 
 ### Automatizadas
 
-Son 113 pruebas de la API, en un archivo `tests.py` por app (usuarios, productos, mesas, pedidos y pagos). Además, `config/tests.py` verifica la matriz de permisos de cada rol en todas las rutas. Desde `backend/`:
+Son 115 pruebas de la API, en un archivo `tests.py` por app (usuarios, productos, mesas, pedidos y pagos). Además, `config/tests.py` verifica la matriz de permisos de cada rol en todas las rutas. Desde `backend/`:
 
 ```bash
 python manage.py test -v 2
