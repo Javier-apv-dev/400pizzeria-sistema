@@ -1,8 +1,11 @@
+from unittest import mock
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.mesas.models import Mesa
 from apps.pedidos.models import DetallePedido, Pedido
+from apps.pedidos.views import PedidoEstadoView
 from apps.productos.models import Categoria, Producto
 from apps.usuarios.models import Rol, Usuario
 
@@ -192,6 +195,18 @@ class HistorialYTransicionesTests(PedidoTestBase):
         respuesta = self.avanzar(self.garzon, 'pendiente')
 
         self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_dos_avances_simultaneos_registran_el_paso_una_sola_vez(self):
+        """D-02 (issue #19): la segunda petición leyó el pedido antes de que la primera lo avanzara."""
+        leido_por_la_segunda = Pedido.objects.select_related('mesa').get(pk=self.pedido_id)
+        self.avanzar(self.cocina, 'en_preparacion')
+
+        with mock.patch.object(PedidoEstadoView, 'get_object', return_value=leido_por_la_segunda):
+            respuesta = self.avanzar(self.cocina, 'en_preparacion')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_409_CONFLICT)
+        self.assertIn('En Preparación', respuesta.data['error'])
+        self.assertEqual(self.historial(), [('pendiente', None), ('en_preparacion', 'Cocina')])
 
     def test_el_garzon_no_puede_marcar_listo(self):
         self.avanzar(self.cocina, 'en_preparacion')

@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from apps.mesas.models import Mesa
 from apps.usuarios.models import Usuario
@@ -42,23 +42,36 @@ class Pedido(models.Model):
         return f'Pedido #{self.id} — Mesa {self.mesa.numero} — {self.estado}'
 
     def registrar_estado(self, nuevo_estado, usuario=None):
-        """Cambia el estado, lo deja en el historial y libera la mesa al entregar."""
-        self.estado = nuevo_estado
-        self.save(update_fields=['estado'])
-        HistorialEstadoPedido.objects.create(
-            pedido=self,
-            estado=nuevo_estado,
-            usuario=usuario
-        )
+        """Cambia el estado, lo deja en el historial y libera la mesa al entregar.
 
-        # Si era el último pedido activo de la mesa, la mesa queda libre
-        if nuevo_estado == self.Estado.ENTREGADO:
-            quedan_activos = Pedido.objects.filter(
-                mesa=self.mesa
-            ).exclude(estado=self.Estado.ENTREGADO).exists()
-            if not quedan_activos:
-                self.mesa.estado = Mesa.Estado.LIBRE
-                self.mesa.save(update_fields=['estado'])
+        Devuelve False, sin cambiar nada, si otro usuario cambió el estado del pedido
+        después de que este se leyó (dos avances simultáneos del mismo pedido).
+        """
+        with transaction.atomic():
+            # Actualización condicional: solo cambia si el pedido sigue en el estado leído
+            cambiados = Pedido.objects.filter(
+                pk=self.pk, estado=self.estado
+            ).update(estado=nuevo_estado)
+            if not cambiados:
+                self.refresh_from_db(fields=['estado'])
+                return False
+
+            self.estado = nuevo_estado
+            HistorialEstadoPedido.objects.create(
+                pedido=self,
+                estado=nuevo_estado,
+                usuario=usuario
+            )
+
+            # Si era el último pedido activo de la mesa, la mesa queda libre
+            if nuevo_estado == self.Estado.ENTREGADO:
+                quedan_activos = Pedido.objects.filter(
+                    mesa=self.mesa
+                ).exclude(estado=self.Estado.ENTREGADO).exists()
+                if not quedan_activos:
+                    self.mesa.estado = Mesa.Estado.LIBRE
+                    self.mesa.save(update_fields=['estado'])
+        return True
 
 
 class HistorialEstadoPedido(models.Model):

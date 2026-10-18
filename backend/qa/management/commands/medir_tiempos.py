@@ -54,12 +54,13 @@ RUTAS = {
     'POST /api/pagos/': UMBRAL_GENERAL_MS,
 }
 # Respuestas esperadas: dos usuarios del mismo rol pueden intentar avanzar o cobrar el mismo
-# pedido, y el segundo recibe 400; una solicitud ya pendiente se devuelve con 200
+# pedido, y el segundo recibe 400 (o 409 si los dos avances llegan juntos); una solicitud ya
+# pendiente se devuelve con 200
 ESPERADOS = {
     'POST /api/pedidos/': {201},
     'POST /api/pagos/': {201, 400},
     'POST /api/mesas/{id}/solicitudes/': {200, 201},
-    'PATCH /api/pedidos/{id}/estado/': {200, 400},
+    'PATCH /api/pedidos/{id}/estado/': {200, 400, 409},
 }
 SIGUIENTE = {'pendiente': 'en_preparacion', 'en_preparacion': 'listo', 'listo': 'entregado'}
 
@@ -323,7 +324,7 @@ class Command(BaseCommand):
         todas = [m for m in self.muestras if m['fase'] == 2]
         p95_global = percentil([m['ms'] for m in todas], 95)
         errores = sum(m['error'] for m in todas)
-        rechazos = {ruta: sum(m['estado'] == 400 for m in todas if m['ruta'] == ruta)
+        rechazos = {ruta: sum(m['estado'] in (400, 409) for m in todas if m['ruta'] == ruta)
                     for ruta in ('PATCH /api/pedidos/{id}/estado/', 'POST /api/pagos/')}
 
         filas, cumple = [], p95_global < UMBRAL_GENERAL_MS and errores == 0
@@ -390,8 +391,8 @@ class Command(BaseCommand):
             '- El p95 usa el método del rango más cercano: el valor bajo el cual queda el 95 % de las peticiones.',
             '- Error: una respuesta distinta de la esperada (200 en las lecturas, 201 al crear un pedido) o '
             'una petición sin respuesta. Dos usuarios del mismo rol pueden intentar avanzar o cobrar el mismo '
-            'pedido: el segundo recibe 400, que es el comportamiento correcto y no cuenta como error. '
-            f'Rechazos 400 en esta corrida: {rechazos["PATCH /api/pedidos/{id}/estado/"]} al avanzar un '
+            'pedido: el segundo recibe 400 o 409, que es el comportamiento correcto y no cuenta como error. '
+            f'Rechazos en esta corrida: {rechazos["PATCH /api/pedidos/{id}/estado/"]} al avanzar un '
             f'pedido y {rechazos["POST /api/pagos/"]} al cobrar.',
             f'- Detalle de cada petición: `{nombre}.csv`.',
         ]

@@ -197,7 +197,13 @@ class PedidoEstadoView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        pedido.registrar_estado(nuevo_estado, request.user)
+        if not pedido.registrar_estado(nuevo_estado, request.user):
+            # Otro usuario avanzó el mismo pedido entre la lectura y la escritura
+            return Response(
+                {'error': f'El pedido ya cambió a "{pedido.get_estado_display()}". '
+                          'Actualiza la lista de pedidos.'},
+                status=status.HTTP_409_CONFLICT
+            )
 
         return Response(
             PedidoSerializer(pedido).data,
