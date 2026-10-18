@@ -21,7 +21,8 @@ La plataforma reemplaza la toma de pedidos verbal, el control visual de mesas y 
 ```
 400pizzeria/
 ├── backend/
-│   ├── config/            # settings, urls raíz y clases de permisos por rol (permissions.py)
+│   ├── config/            # settings, urls raíz, permisos por rol (permissions.py) y settings_qa.py (entorno de prueba)
+│   ├── qa/                # comandos del entorno de prueba: cargar_datos_qa y medir_tiempos
 │   ├── apps/
 │   │   ├── usuarios/      # Usuario (login por email), Rol, login/logout/perfil
 │   │   ├── productos/     # Categoria, Producto (imagen, disponibilidad)
@@ -153,7 +154,27 @@ Son 113 pruebas de la API, en un archivo `tests.py` por app (usuarios, productos
 python manage.py test -v 2
 ```
 
-Django crea una base de pruebas temporal (`test_<DB_NAME>`) y la borra al terminar, así que el usuario de MySQL necesita permiso para crear bases de datos. Para correrlas sin MySQL, se puede usar un archivo de configuración que herede de `config.settings` y defina una base SQLite en memoria (`--settings <módulo>`).
+Django crea una base de pruebas temporal (`test_<DB_NAME>`) y la borra al terminar, así que el usuario de MySQL necesita permiso para crear bases de datos. Para correrlas sin MySQL: `python manage.py test --settings=config.settings_qa`, que usa una base SQLite en memoria.
+
+### Entorno de prueba (QA)
+
+`config/settings_qa.py` usa una base SQLite y una carpeta de imágenes propias en `%TEMP%/400pizzeria-qa` (o en `PIZZERIA_QA_DIR`), así que nunca toca la base MySQL ni `backend/media`. Desde `backend/`:
+
+```bash
+python manage.py cargar_datos_qa --settings=config.settings_qa             # datos de prueba del catálogo
+python manage.py cargar_datos_qa --settings=config.settings_qa --volumen   # + 20 mesas, 100 productos y 500 pedidos (RNF5)
+python manage.py runserver --settings=config.settings_qa
+```
+
+`cargar_datos_qa` deja la base en su estado inicial cada vez que se ejecuta. Las contraseñas del personal de prueba quedan en `credenciales.txt`, dentro de esa carpeta, y se conservan entre una carga y otra.
+
+Con el servidor de prueba en marcha, en otra terminal:
+
+```bash
+python manage.py medir_tiempos --settings=config.settings_qa
+```
+
+`medir_tiempos` mide la API con 10 usuarios simultáneos durante 60 s (RNF3): clientes que recorren la carta y piden, cocina que prepara y garzones que entregan y cobran. Entrega la media y el p95 por ruta frente a los umbrales del RNF3, y guarda el reporte y el detalle de cada petición en `mediciones/`. Las opciones `--usuarios`, `--duracion` y `--pausa` cambian la carga.
 
 ### Funcionales y no funcionales
 

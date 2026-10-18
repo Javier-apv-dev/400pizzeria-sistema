@@ -4,15 +4,15 @@ Casos de prueba funcionales y no funcionales del sistema. Los ejecutan los QA te
 
 Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 113.
 
-- **Versión del catálogo:** 1.0, del 17 de octubre de 2026.
+- **Versión del catálogo:** 1.1, del 18 de octubre de 2026 (comandos del entorno de prueba y primeros defectos registrados).
 - **Sistema bajo prueba:** rama `main` desde el commit `74c2adf`.
 
 ## Cómo usar este catálogo
 
 1. **Entorno.**
-   - El backend se ejecuta con una base de datos de prueba, **nunca con la base real**. El frontend se abre en `http://localhost:5173`.
+   - El backend se ejecuta con una base de datos de prueba, **nunca con la base real**: desde `backend/`, `python manage.py runserver --settings=config.settings_qa`. El frontend se abre en `http://localhost:5173`.
    - Para usar la carta desde un teléfono, ambos equipos deben estar en la misma red, y la dirección del computador debe estar configurada como indica el README.
-2. **Datos.** Antes de empezar, se carga el conjunto de datos de prueba de la sección siguiente.
+2. **Datos.** Antes de empezar, se carga el conjunto de datos de prueba de la sección siguiente con `python manage.py cargar_datos_qa --settings=config.settings_qa`. El comando deja la base en su estado inicial, así que también sirve para repetir un caso desde cero.
 3. **Ejecución.** Cada caso se ejecuta en orden, siguiendo sus pasos. Al terminarlo se marca el resultado:
    - **Aprobado:** todo lo esperado ocurrió.
    - **Fallido:** algo no ocurrió o ocurrió distinto.
@@ -433,7 +433,9 @@ Al final de cada caso se completa este bloque:
 ### CNF-04 · Tiempos de respuesta de la API
 **RNF3** · Issue `#7`
 
-- **Pasos:** ejecutar el script de carga con 10 usuarios simultáneos sobre las rutas principales en el entorno de prueba.
+- **Pasos:**
+  1. Con el servidor de prueba en marcha, ejecutar desde `backend/` `python manage.py medir_tiempos --settings=config.settings_qa`.
+  2. El script mide primero cada ruta con un solo usuario y luego con 10 usuarios simultáneos durante 60 s, sin pausas: 6 clientes que recorren la carta y piden, 2 de cocina y 2 garzones que entregan y cobran.
 - **Resultado esperado:**
   - p95 < 1.500 ms en todas las rutas medidas;
   - carta (categorías y productos) y pedidos activos < 800 ms;
@@ -443,7 +445,7 @@ Al final de cada caso se completa este bloque:
 **RNF5**
 
 - **Pasos:**
-  1. Cargar en la base de prueba 20 mesas, 100 productos y 500 pedidos.
+  1. Cargar en la base de prueba 20 mesas, 100 productos y 500 pedidos: `python manage.py cargar_datos_qa --settings=config.settings_qa --volumen`.
   2. Medir cuánto tardan en cargar la carta y la vista «Activos» de Pedidos.
   3. Repetir CNF-04.
 - **Resultado esperado:** las pantallas cargan y los tiempos siguen dentro de los límites de CNF-04. Si no, se registra como defecto (relacionado con el issue `#16`).
@@ -551,7 +553,9 @@ Cada requerimiento se verifica con pruebas automatizadas, con casos de este cat�
 
 | ID | Fecha | Caso | Descripción | Pasos para repetirlo | Severidad | Estado | Issue o commit | Detectado por |
 |---|---|---|---|---|---|---|---|---|
-| | | | | | | | | |
+| D-01 | 2026-10-18 | CNF-04, CNF-05 | Con 500 pedidos y 10 usuarios simultáneos sin pausa, `GET /api/pedidos/` (vista «Activos») tarda 2.620 ms en el p95 (umbral: 800) y `GET /api/pagos/`, 4.087 ms (umbral: 1.500). Cada respuesta pesa más de 1 MB porque trae todo el historial. Al ritmo de la interfaz (un sondeo cada 10 s) cumple, con poco margen: 726 ms | CNF-05 con `cargar_datos_qa --volumen` y `medir_tiempos` | Media | Abierto | `#16` | Script `medir_tiempos` |
+| D-02 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos peticiones para avanzar el mismo pedido, el servidor acepta las dos y el historial registra el paso dos veces | Enviar dos `PATCH /api/pedidos/<id>/estado/` simultáneos con el siguiente estado, por ejemplo con un doble toque en el botón de avanzar. Se repitió en 50 de 50 intentos | Baja | Abierto | — | Script `medir_tiempos` |
+| D-03 | 2026-10-18 | CNF-04 | Si llegan al mismo tiempo dos cobros del mismo pedido, el servidor registra los dos: quedan dos pagos vigentes y la venta se cuenta dos veces. Contradice la regla de un solo pago vigente (RF25, RNF7) | Enviar dos `POST /api/pagos/` simultáneos para el mismo pedido entregado, por ejemplo desde dos dispositivos. Se repitió en 50 de 50 intentos | Alta | Abierto | — | Script `medir_tiempos` |
 
 **Severidad:**
 - **Crítica:** impide operar.
