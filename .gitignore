@@ -16,3 +16,6 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Graphify (grafo de conocimiento local, no se sube)
+graphify-out/
