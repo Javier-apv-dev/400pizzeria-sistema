@@ -143,15 +143,21 @@ npm run dev
 
 El panel queda en `http://localhost:5173/login` y la carta digital en `http://localhost:5173/carta?mesa=<id>`. La URL base de la API está definida en `frontend/src/services/api.js`.
 
-## Pruebas automatizadas
+## Pruebas
 
-Desde `backend/`:
+### Automatizadas
+
+Son 113 pruebas de la API, en un archivo `tests.py` por app (usuarios, productos, mesas, pedidos y pagos). Además, `config/tests.py` verifica la matriz de permisos de cada rol en todas las rutas. Desde `backend/`:
 
 ```bash
-python manage.py test
+python manage.py test -v 2
 ```
 
-Django crea una base de pruebas temporal (`test_<DB_NAME>`) y la borra al terminar, así que el usuario de MySQL necesita permiso para crear bases de datos.
+Django crea una base de pruebas temporal (`test_<DB_NAME>`) y la borra al terminar, así que el usuario de MySQL necesita permiso para crear bases de datos. Para correrlas sin MySQL, se puede usar un archivo de configuración que herede de `config.settings` y defina una base SQLite en memoria (`--settings <módulo>`).
+
+### Funcionales y no funcionales
+
+El catálogo de casos para ejecución manual, con 29 casos funcionales y 10 no funcionales, los datos de prueba y la cobertura de requerimientos, está en [`docs/qa/casos-de-prueba.md`](docs/qa/casos-de-prueba.md).
 
 ## Variables de entorno (backend)
 
