@@ -540,14 +540,14 @@ Cada requerimiento se verifica con pruebas automatizadas, con casos de este cat�
 | RNF4 | — | CNF-09 |
 | RNF5 | — | CNF-05 |
 | RNF6 | — | CNF-06 |
-| RNF7 | `pagos` · PagosTests; `productos` · ProductosTests | CNF-07 |
+| RNF7 | `pagos` · PagosTests; `pedidos` · HistorialYTransicionesTests; `productos` · ProductosTests | CNF-07 |
 
 ## Observaciones conocidas al preparar el catálogo
 
 | ID | Observación | Efecto |
 |---|---|---|
 | O1 | El formulario de usuarios exige una contraseña de al menos 8 caracteres; la API acepta 6 | Ninguno para el uso normal: el formulario es más estricto. Se documenta para que no se informe como defecto |
-| — | Limitaciones L1 a L6 de la matriz de trazabilidad (rol o categoría inexistentes → 500 vía API, cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, sin transacciones atómicas) | Conocidas y documentadas; no se informan como defectos |
+| — | Limitaciones L1 a L6 de la matriz de trazabilidad (rol o categoría inexistentes → 500 vía API, cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, creación de pedidos sin transacción atómica) | Conocidas y documentadas; no se informan como defectos |
 
 ## Registro de defectos
 
