@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest import mock
 
 from django.utils import timezone
 from rest_framework import status
@@ -6,6 +7,7 @@ from rest_framework.test import APITestCase
 
 from apps.mesas.models import Mesa
 from apps.pagos.models import Pago
+from apps.pagos.serializers import PagoSerializer
 from apps.pedidos.models import Pedido
 from apps.productos.models import Categoria, Producto
 from apps.usuarios.models import Rol, Usuario
@@ -119,6 +121,19 @@ class PagosTests(APITestCase):
         self.assertEqual(segundo.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('pedido_id', segundo.data)
         self.assertEqual(pedido.pagos.count(), 1)
+
+    def test_dos_cobros_simultaneos_dejan_un_solo_pago_vigente(self):
+        """D-03 (issue #20): el segundo cobro pasó la validación antes de que se guardara el primero."""
+        pedido = self.nuevo_pedido(hasta='entregado')
+        self.cobrar(pedido)
+
+        # Se salta la validación del serializer, como le pasa al segundo de dos cobros simultáneos
+        with mock.patch.object(PagoSerializer, 'validate_pedido_id', lambda self, valor: valor):
+            segundo = self.cobrar(pedido, metodo='debito')
+
+        self.assertEqual(segundo.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(segundo.data['pedido_id'], ['Este pedido ya tiene un pago registrado'])
+        self.assertEqual(pedido.pagos.exclude(estado='anulado').count(), 1)
 
     def test_anular_un_pago_permite_volver_a_cobrar_el_pedido(self):
         pedido = self.nuevo_pedido(hasta='entregado')

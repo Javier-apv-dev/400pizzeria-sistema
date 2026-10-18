@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import F
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,7 +8,7 @@ from config.permissions import EsAdministrador, EsAdminOGarzon, EsPersonal
 
 
 from apps.pagos.models import Pago
-from apps.pagos.serializers import PagoSerializer
+from apps.pagos.serializers import PagoSerializer, YA_TIENE_PAGO
 from apps.pedidos.models import Pedido
 
 
@@ -39,27 +41,38 @@ class PagoListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        pedido = Pedido.objects.get(
-            pk=serializer.validated_data['pedido_id']
-        )
+        pedido_id = serializer.validated_data['pedido_id']
+        with transaction.atomic():
+            # Bloquea el pedido hasta el final de la transacción: un segundo cobro simultáneo
+            # espera aquí y después ve el pago del primero. Un UPDATE sin cambios bloquea la
+            # fila en MySQL y la base en SQLite; select_for_update() no serviría en SQLite,
+            # porque Django lo ignora
+            Pedido.objects.filter(pk=pedido_id).update(total=F('total'))
+            pedido = Pedido.objects.select_related('mesa').get(pk=pedido_id)
 
-        if serializer.validated_data['monto'] != pedido.total:
-            return Response(
-                {
-                    'error': f'El monto ingresado ({serializer.validated_data["monto"]}) '
-                             f'no coincide con el total del pedido ({pedido.total})'
-                },
-                status=status.HTTP_400_BAD_REQUEST
+            if pedido.pagos.exclude(estado=Pago.Estado.ANULADO).exists():
+                return Response(
+                    {'pedido_id': [YA_TIENE_PAGO]},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if serializer.validated_data['monto'] != pedido.total:
+                return Response(
+                    {
+                        'error': f'El monto ingresado ({serializer.validated_data["monto"]}) '
+                                 f'no coincide con el total del pedido ({pedido.total})'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            pago = serializer.save(
+                estado=Pago.Estado.COMPLETADO,
+                registrado_por=request.user
             )
 
-        pago = serializer.save(
-            estado=Pago.Estado.COMPLETADO,
-            registrado_por=request.user
-        )
-
-        # Cobrar cierra el pedido: queda en el historial y libera la mesa si corresponde
-        if pedido.estado != Pedido.Estado.ENTREGADO:
-            pedido.registrar_estado(Pedido.Estado.ENTREGADO, request.user)
+            # Cobrar cierra el pedido: queda en el historial y libera la mesa si corresponde
+            if pedido.estado != Pedido.Estado.ENTREGADO:
+                pedido.registrar_estado(Pedido.Estado.ENTREGADO, request.user)
 
         return Response(
             PagoSerializer(pago).data,

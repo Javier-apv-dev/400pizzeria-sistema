@@ -3,6 +3,9 @@ from apps.pagos.models import Pago
 from apps.pedidos.serializers import PedidoSerializer
 from apps.usuarios.serializers import UsuarioSerializer
 
+YA_TIENE_PAGO = 'Este pedido ya tiene un pago registrado'
+
+
 class PagoSerializer(serializers.ModelSerializer):
     pedido = PedidoSerializer(read_only=True)
     pedido_id = serializers.IntegerField(write_only=True)
@@ -31,10 +34,9 @@ class PagoSerializer(serializers.ModelSerializer):
         except Pedido.DoesNotExist:
             raise serializers.ValidationError('El pedido no existe')
 
+        # La vista lo vuelve a revisar con el pedido bloqueado, por si llegan dos cobros a la vez
         if pedido.pagos.exclude(estado=Pago.Estado.ANULADO).exists():
-            raise serializers.ValidationError(
-                'Este pedido ya tiene un pago registrado'
-            )
+            raise serializers.ValidationError(YA_TIENE_PAGO)
         return value
 
     def validate_monto(self, value):
