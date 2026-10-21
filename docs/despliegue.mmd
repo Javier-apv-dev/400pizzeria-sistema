@@ -1,0 +1,37 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "16px", "lineColor": "#555555", "primaryTextColor": "#222222", "edgeLabelBackground": "#FFFFFF"}, "flowchart": {"curve": "basis", "padding": 13, "nodeSpacing": 24, "rankSpacing": 46, "wrappingWidth": 260}}}%%
+flowchart TB
+    subgraph equipo["Notebook del autor · Windows 11"]
+        direction TB
+        navegador["Navegador web (Chrome o Edge)<br/>carta digital y panel"]
+
+        subgraph nodo["Node.js 24"]
+            vite["Vite 8 · servidor de desarrollo<br/>localhost:5173<br/>entrega la SPA de React 19"]
+        end
+
+        subgraph python["Python 3.14 · venv"]
+            django["Django 6 · runserver<br/>localhost:8000<br/>API /api/ e imágenes /media/"]
+        end
+
+        mysql[("MySQL 8.4<br/>localhost:3306<br/>base pizzeria400")]
+        sqlite[("SQLite (QA)<br/>%TEMP%/400pizzeria-qa")]
+    end
+
+    github["GitHub<br/>repositorio, issues<br/>y tablero Kanban"]
+
+    navegador -->|"descarga la aplicación"| vite
+    navegador ==>|"llamadas a la API<br/>HTTP + JSON"| django
+    django -->|"desarrollo<br/>config.settings"| mysql
+    django -.->|"pruebas<br/>config.settings_qa"| sqlite
+    equipo -.->|git push| github
+
+    classDef nodoSw fill:#E3E7EE,stroke:#1F2A37,stroke-width:1.5px,color:#222222
+    classDef cliente fill:#F9E4E6,stroke:#B3202A,stroke-width:1.5px,color:#222222
+    classDef datos fill:#EEEEEE,stroke:#6B7280,stroke-width:1.5px,color:#222222
+    classDef externo fill:#FFFFFF,stroke:#6B7280,stroke-width:1.5px,stroke-dasharray:5 4,color:#444444
+    class vite,django nodoSw
+    class navegador cliente
+    class mysql,sqlite datos
+    class github externo
+    style equipo fill:#FFFFFF,stroke:#1F2A37,stroke-width:2px,color:#1F2A37
+    style nodo fill:#F7F8FA,stroke:#6B7280,stroke-width:1px,color:#444444
+    style python fill:#F7F8FA,stroke:#6B7280,stroke-width:1px,color:#444444

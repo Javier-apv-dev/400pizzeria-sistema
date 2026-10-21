@@ -1,0 +1,45 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "16px", "lineColor": "#555555", "primaryTextColor": "#222222", "edgeLabelBackground": "#FFFFFF"}, "flowchart": {"curve": "basis", "padding": 13, "nodeSpacing": 14, "rankSpacing": 42, "wrappingWidth": 260}}}%%
+flowchart TB
+    cliente(["Cliente<br/>teléfono, sin cuenta"])
+    personal(["Personal del local<br/>Administrador · Garzón · Cocina"])
+
+    subgraph presentacion["Capa de presentación · React 19 (SPA)"]
+        carta["Carta digital pública<br/>/carta?mesa=id<br/>carrito, indicaciones y avisos"]
+        panel["Panel administrativo<br/>rutas protegidas por rol<br/>consulta cada 10 s"]
+    end
+
+    subgraph negocio["Capa de negocio · Django 6 y DRF 3.17"]
+        seguridad["Seguridad de la API<br/>token JWT de 8 h, renovable 24 h<br/>permisos por rol"]
+        usuarios["usuarios<br/>cuentas, roles<br/>y sesión"]
+        productos["productos<br/>categorías,<br/>productos e imágenes"]
+        mesas["mesas<br/>mesas, QR<br/>y avisos de mesa"]
+        pedidos["pedidos<br/>precio en el servidor<br/>estados por rol<br/>e historial"]
+        pagos["pagos<br/>un pago vigente<br/>por pedido<br/>y anulación"]
+    end
+
+    subgraph datos["Capa de datos"]
+        orm["ORM de Django<br/>modelos y migraciones"]
+        bd[("MySQL 8.4 · utf8mb4<br/>10 entidades")]
+        media[["Imágenes de productos<br/>backend/media"]]
+    end
+
+    cliente -->|escanea el QR de la mesa| carta
+    personal -->|inicia sesión| panel
+    carta <==>|"HTTP + JSON<br/>rutas públicas"| seguridad
+    panel <==>|"HTTP + JSON<br/>con token JWT"| seguridad
+    seguridad --> usuarios & productos & mesas & pedidos & pagos
+    usuarios & productos & mesas & pedidos & pagos --> orm
+    orm --> bd
+    orm -->|archivos| media
+
+    classDef actor fill:#FFFFFF,stroke:#1F2A37,stroke-width:2px,color:#222222
+    classDef pres fill:#F9E4E6,stroke:#B3202A,stroke-width:1.5px,color:#222222
+    classDef neg fill:#E3E7EE,stroke:#1F2A37,stroke-width:1.5px,color:#222222
+    classDef dat fill:#EEEEEE,stroke:#6B7280,stroke-width:1.5px,color:#222222
+    class cliente,personal actor
+    class carta,panel pres
+    class seguridad,usuarios,productos,mesas,pedidos,pagos neg
+    class orm,bd,media dat
+    style presentacion fill:#FFFFFF,stroke:#B3202A,stroke-width:2px,color:#B3202A
+    style negocio fill:#FFFFFF,stroke:#1F2A37,stroke-width:2px,color:#1F2A37
+    style datos fill:#FFFFFF,stroke:#6B7280,stroke-width:2px,color:#444444
