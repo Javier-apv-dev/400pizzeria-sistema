@@ -4,7 +4,7 @@ Casos de prueba funcionales y no funcionales del sistema. Los ejecutan los QA te
 
 Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 115.
 
-- **Versión del catálogo:** 1.2, del 18 de octubre de 2026 (comandos del entorno de prueba, defectos D-01 a D-03 y verificación de D-02 y D-03).
+- **Versión del catálogo:** 1.3, del 25 de octubre de 2026 (el Garzón también es actor de CU-10, porque puede iniciar la preparación de un pedido, como en el diagrama de casos de uso de la memoria).
 - **Sistema bajo prueba:** rama `main` desde el commit `74c2adf`.
 
 ## Cómo usar este catálogo
@@ -44,7 +44,7 @@ Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8
 | CU-07 Gestionar categorías | Administrador | CF-13 |
 | CU-08 Gestionar productos | Administrador | CF-14, CF-15, CF-16 |
 | CU-09 Gestionar mesas y códigos QR | Administrador y Garzón | CF-17, CF-18, CF-19 |
-| CU-10 Preparar pedidos | Cocina | CF-20, CF-22 |
+| CU-10 Preparar pedidos | Cocina y Garzón | CF-20, CF-22 |
 | CU-11 Entregar pedidos | Garzón | CF-21 |
 | CU-12 Eliminar un pedido pendiente | Administrador | CF-23 |
 | CU-13 Atender avisos de mesa | Garzón y Administrador | CF-24 |
