@@ -2,9 +2,9 @@
 
 Casos de prueba funcionales y no funcionales del sistema. Los ejecutan los QA testers sobre el sistema completo: carta digital y panel administrativo.
 
-Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 117.
+Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 124.
 
-- **Versión del catálogo:** 1.4, del 8 de noviembre de 2026 (L1 y L2 corregidas: un rol o una categoría inexistentes responden 400).
+- **Versión del catálogo:** 1.5, del 8 de noviembre de 2026 (L1 y L2 corregidas, y las entradas inválidas que respondían 500 ahora responden 400).
 - **Sistema bajo prueba:** rama `main` desde el commit `74c2adf`.
 
 ## Cómo usar este catálogo
