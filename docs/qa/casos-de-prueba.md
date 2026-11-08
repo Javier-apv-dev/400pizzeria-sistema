@@ -2,9 +2,9 @@
 
 Casos de prueba funcionales y no funcionales del sistema. Los ejecutan los QA testers sobre el sistema completo: carta digital y panel administrativo.
 
-Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 115.
+Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8 de la memoria). Sus resultados van al Anexo A. Los identificadores de requerimientos (RF01 a RF41, RNF1 a RNF7) corresponden a la matriz de trazabilidad v2 de la memoria. Las pruebas automatizadas de la API están en los `tests.py` de cada app; hoy son 117.
 
-- **Versión del catálogo:** 1.3, del 25 de octubre de 2026 (el Garzón también es actor de CU-10, porque puede iniciar la preparación de un pedido, como en el diagrama de casos de uso de la memoria).
+- **Versión del catálogo:** 1.4, del 8 de noviembre de 2026 (L1 y L2 corregidas: un rol o una categoría inexistentes responden 400).
 - **Sistema bajo prueba:** rama `main` desde el commit `74c2adf`.
 
 ## Cómo usar este catálogo
@@ -20,7 +20,7 @@ Este catálogo forma parte del plan de aseguramiento de la calidad (sección 3.8
    - **No aplica.**
 4. **Evidencia.** Se guarda una captura por caso con el nombre `<ID>_<fecha>.png`, por ejemplo `CF-06_2026-10-25.png`.
 5. **Defectos.** Si un caso falla, se registra el defecto en la última sección, con la captura y los pasos para repetirlo.
-6. **Limitaciones conocidas.** Las limitaciones L1 a L7 de la matriz de trazabilidad no se informan como defectos. Por ejemplo, que un rol inexistente enviado directo a la API responda 500.
+6. **Limitaciones conocidas.** Las limitaciones L3 a L7 de la matriz de trazabilidad no se informan como defectos. Por ejemplo, que vía API se pueda cobrar un pedido que todavía no se entrega.
 
 ## Datos de prueba
 
@@ -547,7 +547,7 @@ Cada requerimiento se verifica con pruebas automatizadas, con casos de este cat�
 | ID | Observación | Efecto |
 |---|---|---|
 | O1 | El formulario de usuarios exige una contraseña de al menos 8 caracteres; la API acepta 6 | Ninguno para el uso normal: el formulario es más estricto. Se documenta para que no se informe como defecto |
-| — | Limitaciones L1 a L7 de la matriz de trazabilidad (rol o categoría inexistentes → 500 vía API, cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, creación de pedidos sin transacción atómica, vistas de pedidos y pagos que descargan todo el historial) | Conocidas y documentadas; no se informan como defectos. L7 viene del defecto D-01 |
+| — | Limitaciones L3 a L7 de la matriz de trazabilidad (cobro de pedidos no entregados vía API, sin filtro por fecha, sin desglose por método, creación de pedidos sin transacción atómica, vistas de pedidos y pagos que descargan todo el historial) | Conocidas y documentadas; no se informan como defectos. L7 viene del defecto D-01 |
 
 ## Registro de defectos
 
