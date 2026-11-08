@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from config.permissions import EsPersonal, EsAdminOGarzon, EsAdminOCocina
 from config.permissions import EsAdministrador  # para el DELETE
+from config.validadores import es_id_valido
 
 from apps.pedidos.models import Pedido, DetallePedido, HistorialEstadoPedido
 from apps.pedidos.serializers import (
@@ -43,6 +44,11 @@ class PedidoListView(APIView):
         if estado:
             pedidos = pedidos.filter(estado=estado)
         if mesa_id:
+            if not es_id_valido(mesa_id):
+                return Response(
+                    {'error': 'El filtro mesa debe ser un número entero'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             pedidos = pedidos.filter(mesa_id=mesa_id)
 
         serializer = PedidoSerializer(pedidos, many=True)

@@ -1,3 +1,5 @@
+import json
+
 from django.urls import URLResolver, get_resolver, resolve
 from rest_framework.test import APITestCase
 
@@ -141,3 +143,104 @@ class MatrizDePermisosTests(APITestCase):
 
         self.assertEqual(len(MATRIZ), 40)
         self.assertEqual(en_la_matriz, en_la_api)
+
+
+class EntradasInvalidasTests(APITestCase):
+    """Tabla 3.19: una entrada inválida responde 400, nunca 500.
+
+    Estas entradas no se pueden enviar desde el panel ni desde la carta, pero sí
+    llamando a la API directamente.
+    """
+
+    def setUp(self):
+        self.admin = crear_usuario(ADMIN)
+        self.client.force_authenticate(self.admin)
+        self.categoria = Categoria.objects.create(nombre='Pizzas')
+        self.producto = Producto.objects.create(nombre='Margherita', precio=9990, categoria=self.categoria)
+        self.mesa = Mesa.objects.create(numero=1, capacidad=4)
+        self.pedido = Pedido.objects.create(mesa=self.mesa, total=9990)
+        self.url_estado_usuario = f'/api/auth/usuarios/{self.admin.id}/estado/'
+        self.url_editar_usuario = f'/api/auth/usuarios/{self.admin.id}/editar/'
+        self.url_estado_categoria = f'/api/categorias/{self.categoria.id}/estado/'
+
+    def enviar(self, metodo, url, cuerpo):
+        return getattr(self.client, metodo)(url, data=json.dumps(cuerpo), content_type='application/json')
+
+    def test_un_cuerpo_json_que_no_es_objeto_responde_400(self):
+        rutas = [
+            ('post', '/api/auth/login/'),
+            ('patch', self.url_estado_usuario),
+            ('patch', self.url_editar_usuario),
+            ('patch', self.url_estado_categoria),
+            ('patch', f'/api/mesas/{self.mesa.id}/estado/'),
+            ('post', f'/api/mesas/{self.mesa.id}/solicitudes/'),
+            ('patch', f'/api/pedidos/{self.pedido.id}/estado/'),
+        ]
+        for metodo, url in rutas:
+            for cuerpo in ([], [1, 2], 'texto', 123, None):
+                with self.subTest(url=url, cuerpo=cuerpo):
+                    self.assertEqual(self.enviar(metodo, url, cuerpo).status_code, 400)
+
+    def test_un_filtro_que_no_es_un_id_valido_responde_400(self):
+        for ruta in ('/api/productos/?categoria=', '/api/pedidos/?mesa='):
+            for valor in ('abc', '1.5', '-1', str(10 ** 30), '9' * 5000):
+                with self.subTest(ruta=ruta, valor=valor[:20]):
+                    self.assertEqual(self.client.get(f'{ruta}{valor}').status_code, 400)
+
+    def test_un_filtro_valido_sigue_filtrando(self):
+        for url, encontrados in (
+            (f'/api/productos/?categoria={self.categoria.id}', 1),
+            ('/api/productos/?categoria=999', 0),
+            (f'/api/pedidos/?mesa={self.mesa.id}', 1),
+            ('/api/pedidos/?mesa=999', 0),
+        ):
+            with self.subTest(url=url):
+                respuesta = self.client.get(url)
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertEqual(len(respuesta.data), encontrados)
+
+    def test_credenciales_que_no_son_texto_responden_400(self):
+        self.client.force_authenticate(None)
+        for cuerpo in (
+            {'email': 123, 'password': 456},
+            {'email': ['a'], 'password': {'a': 1}},
+            {'email': 'admin@test.cl', 'password': 123},
+            {'email': 123, 'password': 'clave-prueba'},
+        ):
+            with self.subTest(cuerpo=cuerpo):
+                self.assertEqual(self.enviar('post', '/api/auth/login/', cuerpo).status_code, 400)
+
+    def test_activo_que_no_es_booleano_responde_400(self):
+        for url in (self.url_estado_usuario, self.url_estado_categoria):
+            for valor in ('abc', 'true', 1, 123, [], {}):
+                with self.subTest(url=url, valor=valor):
+                    self.assertEqual(self.enviar('patch', url, {'activo': valor}).status_code, 400)
+
+        self.admin.refresh_from_db()
+        self.categoria.refresh_from_db()
+        self.assertTrue(self.admin.activo)
+        self.assertTrue(self.categoria.activo)
+
+    def test_editar_usuario_con_datos_que_no_son_texto_responde_400(self):
+        for cuerpo in (
+            {'password': 123},
+            {'password': ['a']},
+            {'nombre': 123},
+            {'nombre': ['a']},
+            {'apellido': {'a': 1}},
+        ):
+            with self.subTest(cuerpo=cuerpo):
+                self.assertEqual(self.enviar('patch', self.url_editar_usuario, cuerpo).status_code, 400)
+
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.nombre, ADMIN)
+        self.assertTrue(self.admin.check_password('clave-prueba'))
+
+    def test_editar_usuario_con_un_texto_mas_largo_que_su_columna_responde_400(self):
+        for campo in ('nombre', 'apellido'):
+            with self.subTest(campo=campo):
+                respuesta = self.enviar('patch', self.url_editar_usuario, {campo: 'x' * 101})
+                self.assertEqual(respuesta.status_code, 400)
+
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.nombre, ADMIN)

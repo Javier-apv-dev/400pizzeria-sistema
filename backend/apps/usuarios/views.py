@@ -27,6 +27,12 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not isinstance(email, str) or not isinstance(password, str):
+            return Response(
+                {'error': 'Email y contraseña deben ser texto'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         usuario = authenticate(request, username=email, password=password)
 
         if usuario is None:
@@ -123,6 +129,12 @@ class UsuarioEstadoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not isinstance(activo, bool):
+            return Response(
+                {'error': 'El campo activo debe ser verdadero o falso'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         usuario.activo = activo
         usuario.is_active = activo
         usuario.save()
@@ -147,6 +159,22 @@ class UsuarioEditarView(APIView):
         nombre = request.data.get('nombre')
         apellido = request.data.get('apellido')
         password = request.data.get('password')
+
+        for campo, valor in (('nombre', nombre), ('apellido', apellido), ('password', password)):
+            if valor is not None and not isinstance(valor, str):
+                return Response(
+                    {'error': f'El campo {campo} debe ser texto'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Esta ruta no usa serializador: sin este control, MySQL rechaza el texto largo y la API responde 500
+        for campo, valor in (('nombre', nombre), ('apellido', apellido)):
+            maximo = Usuario._meta.get_field(campo).max_length
+            if valor and len(valor) > maximo:
+                return Response(
+                    {'error': f'El campo {campo} admite hasta {maximo} caracteres'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         if nombre:
             usuario.nombre = nombre

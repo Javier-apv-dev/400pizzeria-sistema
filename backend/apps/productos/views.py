@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from config.permissions import EsAdministrador
+from config.validadores import es_id_valido
 
 from apps.productos.models import Categoria, Producto
 from apps.productos.serializers import CategoriaSerializer, ProductoSerializer
@@ -108,6 +109,12 @@ class CategoriaEstadoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not isinstance(nuevo_activo, bool):
+            return Response(
+                {'error': 'El campo activo debe ser verdadero o falso'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         categoria.activo = nuevo_activo
         categoria.save()
         return Response(
@@ -139,6 +146,11 @@ class ProductoListView(APIView):
             )
 
         if categoria_id:
+            if not es_id_valido(categoria_id):
+                return Response(
+                    {'error': 'El filtro categoria debe ser un número entero'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             productos = productos.filter(categoria_id=categoria_id)
         disponible = request.query_params.get('disponible')
         if disponible is not None and request.user.is_authenticated:
