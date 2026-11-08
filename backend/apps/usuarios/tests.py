@@ -140,11 +140,7 @@ class SesionTests(AutenticacionTestBase):
 
 
 class GestionDeUsuariosTests(AutenticacionTestBase):
-    """RF05 a RF07: el Administrador gestiona las cuentas del personal y los demás roles no.
-
-    Un rol inexistente enviado directo a la API responde 500 (limitación L1, issue #12);
-    el panel solo ofrece roles existentes, que es lo que exige RF06.
-    """
+    """RF05 a RF07: el Administrador gestiona las cuentas del personal y los demás roles no."""
 
     def setUp(self):
         self.admin = crear_usuario('Administrador')
@@ -197,6 +193,13 @@ class GestionDeUsuariosTests(AutenticacionTestBase):
 
         self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('email', respuesta.data)
+
+    def test_un_rol_inexistente_se_rechaza(self):
+        respuesta = self.nuevo_usuario(rol_id=9999)
+
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('rol_id', respuesta.data)
+        self.assertFalse(Usuario.objects.filter(email='ana@test.cl').exists())
 
     def test_editar_cambia_nombre_y_clave_pero_no_el_correo_ni_el_rol(self):
         respuesta = self.client.patch(

@@ -24,6 +24,11 @@ class CrearUsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['nombre', 'apellido', 'email', 'password', 'rol_id']
 
+    def validate_rol_id(self, value):
+        if not Rol.objects.filter(pk=value).exists():
+            raise serializers.ValidationError('El rol no existe')
+        return value
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         usuario = Usuario(**validated_data)
