@@ -123,11 +123,7 @@ class CategoriasTests(APITestCase):
 
 
 class ProductosTests(APITestCase):
-    """RF09 a RF11 y RF16: productos de la carta, su categoría y su disponibilidad.
-
-    Una categoría inexistente enviada directo a la API responde 500 (limitación L2);
-    el panel solo ofrece categorías registradas, que es lo que exige RF10.
-    """
+    """RF09 a RF11 y RF16: productos de la carta, su categoría y su disponibilidad."""
 
     def setUp(self):
         self.admin = crear_usuario('Administrador')
@@ -231,6 +227,19 @@ class ProductosTests(APITestCase):
                 respuesta = self.client.post('/api/productos/', self.datos_producto(precio=precio), format='json')
                 self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertIn('precio', respuesta.data)
+
+    def test_una_categoria_inexistente_se_rechaza_al_crear_y_al_editar(self):
+        self.client.force_authenticate(self.admin)
+        datos = self.datos_producto(categoria_id=9999)
+
+        creado = self.client.post('/api/productos/', datos, format='json')
+        editado = self.client.put(f'/api/productos/{self.margherita.id}/', datos, format='json')
+
+        for respuesta in (creado, editado):
+            self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('categoria_id', respuesta.data)
+        self.margherita.refresh_from_db()
+        self.assertEqual(self.margherita.categoria, self.pizzas)
 
     def test_el_administrador_edita_un_producto(self):
         self.client.force_authenticate(self.admin)

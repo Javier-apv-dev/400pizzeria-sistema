@@ -25,6 +25,11 @@ class ProductoSerializer(serializers.ModelSerializer):
             'categoria_id'
         ]
 
+    def validate_categoria_id(self, value):
+        if not Categoria.objects.filter(pk=value).exists():
+            raise serializers.ValidationError('La categoría no existe')
+        return value
+
     def validate_precio(self, value):
         if value <= 0:
             raise serializers.ValidationError('El precio debe ser mayor a 0')
